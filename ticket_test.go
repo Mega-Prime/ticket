@@ -5,16 +5,20 @@ import (
 	"ticket"
 
 	"github.com/google/go-cmp/cmp"
+	"github.com/google/go-cmp/cmp/cmpopts"
 )
 
-func TestSubject(t *testing.T) {
+func TestNewTicket(t *testing.T) {
 	t.Parallel()
 	p := ticket.NewProject("test")
-	var t1 ticket.Ticket
-	want := "My screen broke"
-	t1 = p.NewTicket(want)
-	if want != t1.Subject {
-		t.Error(cmp.Diff(want, t1))
+	want := ticket.Ticket{
+		Status:      ticket.StatusOpen,
+		Subject:     "My screen broke again",
+		Description: "Pixels missing!",
+	}
+	got := p.NewTicket(want.Subject)
+	if !cmp.Equal(want, got, cmpopts.IgnoreFields(want, "ID")) {
+		t.Error(cmp.Diff(want, got))
 	}
 }
 
