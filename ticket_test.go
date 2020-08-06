@@ -15,3 +15,13 @@ func TestTicket(t *testing.T) {
 	}
 
 }
+
+func TestTicketID(t *testing.T) {
+	var got ticket.Ticket
+	got = ticket.New(string(got.ID))
+	if got.ID == 0 {
+		t.Errorf("invalid id: %v", got.ID)
+	}
+
+}
+
