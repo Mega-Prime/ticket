@@ -5,13 +5,21 @@ type Ticket struct {
 	ID      int
 }
 
-var highestID int
+type Project struct {
+	Name      string
+	highestID int
+}
 
-// New returns struct values
-func New(s string) Ticket {
-	highestID++
+func NewProject(name string) *Project {
+	return &Project{
+		Name: name,
+	}
+}
+
+func (p *Project) NewTicket(s string) Ticket {
+	p.highestID++
 	return Ticket{
 		Subject: s,
-		ID:      highestID,
+		ID:      p.highestID,
 	}
 }

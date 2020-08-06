@@ -8,21 +8,32 @@ import (
 )
 
 func TestSubject(t *testing.T) {
-	var got ticket.Ticket
+	t.Parallel()
+	p := ticket.NewProject("test")
+	var t1 ticket.Ticket
 	want := "My screen broke"
-	got = ticket.New(want)
-	if want != got.Subject {
-		t.Error(cmp.Diff(want, got))
+	t1 = p.NewTicket(want)
+	if want != t1.Subject {
+		t.Error(cmp.Diff(want, t1))
 	}
 }
 
 func TestID(t *testing.T) {
-	got1 := ticket.New("test ticket")
-	if got1.ID == 0 {
-		t.Errorf("invalid id: %v", got1.ID)
+	t.Parallel()
+	p := ticket.NewProject("test")
+	t1 := p.NewTicket("test ticket")
+	if t1.ID == 0 {
+		t.Errorf("invalid id: %v", t1.ID)
 	}
-	got2 := ticket.New("another test ticket")
-	if got1.ID == got2.ID {
-		t.Errorf("want different IDs, got both == %v", got1.ID)
+	t2 := p.NewTicket("another test ticket")
+	if t1.ID == t2.ID {
+		t.Errorf("want different IDs, got both == %v", t1.ID)
+	}
+}
+
+func BenchmarkNewTicket(b *testing.B) {
+	p := ticket.NewProject("speedtest")
+	for i := 0; i < b.N; i++ {
+		p.NewTicket("high speed")
 	}
 }
