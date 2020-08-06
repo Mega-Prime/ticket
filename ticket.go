@@ -6,5 +6,5 @@ type Ticket struct {
 
 // New returns struct values
 func New(s string) Ticket {
-	return Ticket{Subject: s}
+	return Ticket{Subject: s, ID: 1}
 }
