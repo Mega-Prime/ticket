@@ -5,7 +5,13 @@ type Ticket struct {
 	ID      int
 }
 
+var highestID int
+
 // New returns struct values
 func New(s string) Ticket {
-	return Ticket{Subject: s, ID: 1} // Should there be an auto-generated number using the Math/random package?
+	highestID++
+	return Ticket{
+		Subject: s,
+		ID:      highestID,
+	}
 }

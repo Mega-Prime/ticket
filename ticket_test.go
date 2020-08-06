@@ -3,24 +3,26 @@ package ticket_test
 import (
 	"testing"
 	"ticket"
+
+	"github.com/google/go-cmp/cmp"
 )
 
-func TestTicket(t *testing.T) {
+func TestSubject(t *testing.T) {
 	var got ticket.Ticket
-	got = ticket.New("My screen broke")
-	var want ticket.Ticket
-	want = ticket.Ticket{Subject: "My screen broke"}
-	if want != got {
-		t.Errorf("want %v, got %v", want, got)
+	want := "My screen broke"
+	got = ticket.New(want)
+	if want != got.Subject {
+		t.Error(cmp.Diff(want, got))
 	}
-
 }
 
-func TestTicketID(t *testing.T) {
-	var got ticket.Ticket
-	got = ticket.New(string(got.ID)) //test
-	if got.ID == 0 {
-		t.Errorf("invalid id: %v", got.ID)
+func TestID(t *testing.T) {
+	got1 := ticket.New("test ticket")
+	if got1.ID == 0 {
+		t.Errorf("invalid id: %v", got1.ID)
 	}
-
+	got2 := ticket.New("another test ticket")
+	if got1.ID == got2.ID {
+		t.Errorf("want different IDs, got both == %v", got1.ID)
+	}
 }
