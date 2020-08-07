@@ -46,6 +46,7 @@ func (p *Project) NewTicket(s string) Ticket {
 		Subject:     s,
 		ID:          p.highestID,
 		Description: p.ProjDescription,
-		Status:      StatusOpen,
+		Status:      StatusOpen, //shouldnt values from map
+		//used here?
 	}
 }
