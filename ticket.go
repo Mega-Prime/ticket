@@ -15,11 +15,13 @@ type Project struct {
 	Name            string
 	highestID       int
 	ProjDescription string
+	IDs map
 }
 
 func NewProject(name string) *Project {
 	return &Project{
 		Name: name,
+		
 	}
 }
 
@@ -30,7 +32,9 @@ func Get(id int) Ticket {
 func (p *Project) NewTicket(s string) Ticket {
 	p.highestID++
 	p.ProjDescription = "Pixels missing!"
+	//save ticket here in a map:
 
+	//then return ticket:
 	return Ticket{
 		Subject:     s,
 		ID:          p.highestID,
