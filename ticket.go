@@ -15,15 +15,13 @@ type Project struct {
 	Name            string
 	highestID       int
 	ProjDescription string
-	
 }
 
 func NewProject(name string) *Project {
 	return &Project{
 		Name: name,
-		
 	}
-
+}
 
 func Get(id int) Ticket {
 	return Ticket{}
