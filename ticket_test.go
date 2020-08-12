@@ -49,11 +49,11 @@ func TestGetTicket(t *testing.T) {
 	want := "My screen broke again"
 
 	//created ticket
-	createTicket := p.NewTicket("testing ticket search")
+	createdTicket := p.NewTicket("testing ticket search")
 
 	//got the id from created ticket
 
-	got := ticket.Get(createTicket.ID)
+	got := ticket.Get(createdTicket.ID)
 
 	//check if it is correct subject
 	if want != got.Subject {
