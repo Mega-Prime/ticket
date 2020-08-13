@@ -1,6 +1,8 @@
 package ticket
 
-import "fmt"
+import (
+	"fmt"
+)
 
 const (
 	StatusOpen int = iota
@@ -13,14 +15,18 @@ type Ticket struct {
 	Status      int
 }
 
+type ticketMap map[int]*Ticket
+
+// Store stores tickets.
 type Store struct {
 	highestID int
-	tickets   map[int]*Ticket
+	tickets   ticketMap
 }
 
+// NewStore returns a pointer to a new Store.
 func NewStore() *Store {
 	return &Store{
-		tickets: map[int]*Ticket{},
+		tickets: ticketMap{},
 	}
 }
 
@@ -32,15 +38,15 @@ func (s *Store) Get(ID int) (*Ticket, error) {
 	return tk, nil
 }
 
-func (s *Store) NewTicket(subject string) Ticket {
+func (s *Store) NewTicket(subject string) *Ticket {
 	s.highestID++
-	tk := Ticket{
+	tk := &Ticket{
 		Subject: subject,
 		ID:      s.highestID,
 		Status:  StatusOpen,
 	}
 	//save ticket here in a map:
-	s.tickets[tk.ID] = &tk
+	s.tickets[tk.ID] = tk
 
 	//then return ticket:
 	return tk

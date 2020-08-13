@@ -8,34 +8,37 @@ import (
 	"github.com/google/go-cmp/cmp/cmpopts"
 )
 
+var ignoreID = cmpopts.IgnoreFields(ticket.Ticket{}, "ID")
+
 func TestNewTicket(t *testing.T) {
 	t.Parallel()
-	ts := ticket.NewStore()
-	want := ticket.Ticket{
+	s := ticket.NewStore()
+	want := &ticket.Ticket{
 		Status:  ticket.StatusOpen,
 		Subject: "My screen broke again",
 	}
-	got := ts.NewTicket(want.Subject)
-	if !cmp.Equal(want, got, cmpopts.IgnoreFields(want, "ID")) {
+	got := s.NewTicket(want.Subject)
+	if !cmp.Equal(want, got, ignoreID) {
 		t.Error(cmp.Diff(want, got))
 	}
 }
 
 func TestFields(t *testing.T) {
 	t.Parallel()
-	ts := ticket.NewStore()
-	newTic := ts.NewTicket("testing something")
-	newTic.Description = "Pixels missing"
+	s := ticket.NewStore()
+	tk := s.NewTicket("testing something")
+	tk.Description = "Pixels missing"
 }
 
 func TestID(t *testing.T) {
 	t.Parallel()
-	ts := ticket.NewStore()
-	t1 := ts.NewTicket("test ticket")
+	s := ticket.NewStore()
+	t1 := s.NewTicket("test ticket")
 	if t1.ID == 0 {
 		t.Errorf("invalid id: %v", t1.ID)
 	}
-	t2 := ts.NewTicket("another test ticket")
+	t2 := s.NewTicket("another test ticket")
+	// IDs are sequential - potential security issue in the future?
 	if t1.ID == t2.ID {
 		t.Errorf("want different IDs, got both == %v", t1.ID)
 	}
@@ -45,23 +48,37 @@ func TestGetTicket(t *testing.T) {
 	//create ticket in system
 	t.Parallel()
 	s := ticket.NewStore()
-	wantSubject := "My screen broke again"
 
-	//created ticket
-	createdTicket := s.NewTicket(wantSubject)
+	//pointer to created ticket
+	want := s.NewTicket("My screen broke again")
 
-	//got the id from created ticket
-
-	got, err := s.Get(createdTicket.ID)
+	//look up ticket by ID and get a pointer to it
+	got, err := s.Get(want.ID)
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	//check if it is correct subject
-	if wantSubject != got.Subject {
-		t.Errorf("want %q, got: %q", wantSubject, got.Subject)
+	//both pointers should point to the same ticket
+	if !cmp.Equal(want, got) {
+		t.Error(cmp.Diff(want, got))
 	}
+}
 
+func TestGetByStatus(t *testing.T) {
+	s := ticket.NewStore()
+	tkOpen := s.NewTicket("this is open")
+	tkClosed := s.NewTicket("this will be closed")
+	tkClosed.Status = ticket.StatusClosed
+	want := []*ticket.Ticket{
+		tkOpen,
+	}
+	got, err := s.GetByStatus(ticket.StatusOpen)
+	if err != nil {
+		t.Error(err)
+	}
+	if !cmp.Equal(want, got) {
+		t.Error(cmp.Diff(want, got))
+	}
 }
 
 func BenchmarkNewTicket(b *testing.B) {
