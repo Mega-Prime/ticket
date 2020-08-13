@@ -51,3 +51,11 @@ func (s *Store) NewTicket(subject string) *Ticket {
 	//then return ticket:
 	return tk
 }
+
+// GetByStatus draft
+// start with 'result' is an empty slice of *ticket
+// range over the map of tickets
+// for each ticket:
+// 	if it's the status we want:
+//		append it to the result
+// return result
