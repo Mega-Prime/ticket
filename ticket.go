@@ -1,5 +1,7 @@
 package ticket
 
+import "fmt"
+
 const (
 	StatusOpen int = iota
 )
@@ -11,32 +13,35 @@ type Ticket struct {
 	Status      int
 }
 
-type Project struct {
-	Name            string
-	highestID       int
-	ProjDescription string
+type Store struct {
+	highestID int
+	tickets   map[int]*Ticket
 }
 
-func NewProject(name string) *Project {
-	return &Project{
-		Name: name,
+func NewStore() *Store {
+	return &Store{
+		tickets: map[int]*Ticket{},
 	}
 }
 
-func Get(id int) Ticket {
-	return Ticket{}
+func (s *Store) Get(ID int) (*Ticket, error) {
+	tk, ok := s.tickets[ID]
+	if !ok {
+		return &Ticket{}, fmt.Errorf("no such ID %d", ID)
+	}
+	return tk, nil
 }
 
-func (p *Project) NewTicket(s string) Ticket {
-	p.highestID++
-	p.ProjDescription = "Pixels missing!"
+func (s *Store) NewTicket(subject string) Ticket {
+	s.highestID++
+	tk := Ticket{
+		Subject: subject,
+		ID:      s.highestID,
+		Status:  StatusOpen,
+	}
 	//save ticket here in a map:
+	s.tickets[tk.ID] = &tk
 
 	//then return ticket:
-	return Ticket{
-		Subject:     s,
-		ID:          p.highestID,
-		Description: p.ProjDescription,
-		Status:      StatusOpen,
-	}
+	return tk
 }

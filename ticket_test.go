@@ -10,13 +10,12 @@ import (
 
 func TestNewTicket(t *testing.T) {
 	t.Parallel()
-	p := ticket.NewProject("test")
+	ts := ticket.NewStore()
 	want := ticket.Ticket{
 		Status:  ticket.StatusOpen,
 		Subject: "My screen broke again",
-		//Description: "Pixels missing!",
 	}
-	got := p.NewTicket(want.Subject)
+	got := ts.NewTicket(want.Subject)
 	if !cmp.Equal(want, got, cmpopts.IgnoreFields(want, "ID")) {
 		t.Error(cmp.Diff(want, got))
 	}
@@ -24,19 +23,19 @@ func TestNewTicket(t *testing.T) {
 
 func TestFields(t *testing.T) {
 	t.Parallel()
-	p := ticket.NewProject("test field")
-	newTic := p.NewTicket("testing something")
+	ts := ticket.NewStore()
+	newTic := ts.NewTicket("testing something")
 	newTic.Description = "Pixels missing"
 }
 
 func TestID(t *testing.T) {
 	t.Parallel()
-	p := ticket.NewProject("test")
-	t1 := p.NewTicket("test ticket")
+	ts := ticket.NewStore()
+	t1 := ts.NewTicket("test ticket")
 	if t1.ID == 0 {
 		t.Errorf("invalid id: %v", t1.ID)
 	}
-	t2 := p.NewTicket("another test ticket")
+	t2 := ts.NewTicket("another test ticket")
 	if t1.ID == t2.ID {
 		t.Errorf("want different IDs, got both == %v", t1.ID)
 	}
@@ -45,25 +44,28 @@ func TestID(t *testing.T) {
 func TestGetTicket(t *testing.T) {
 	//create ticket in system
 	t.Parallel()
-	p := ticket.NewProject("test")
-	want := "My screen broke again"
+	s := ticket.NewStore()
+	wantSubject := "My screen broke again"
 
 	//created ticket
-	createdTicket := p.NewTicket("testing ticket search")
+	createdTicket := s.NewTicket(wantSubject)
 
 	//got the id from created ticket
 
-	got := ticket.Get(createdTicket.ID)
+	got, err := s.Get(createdTicket.ID)
+	if err != nil {
+		t.Fatal(err)
+	}
 
 	//check if it is correct subject
-	if want != got.Subject {
-		t.Errorf("want %s, got: %s", want, got.Subject)
+	if wantSubject != got.Subject {
+		t.Errorf("want %q, got: %q", wantSubject, got.Subject)
 	}
 
 }
 
 func BenchmarkNewTicket(b *testing.B) {
-	p := ticket.NewProject("speedtest")
+	p := ticket.NewStore()
 	for i := 0; i < b.N; i++ {
 		p.NewTicket("high speed")
 	}
