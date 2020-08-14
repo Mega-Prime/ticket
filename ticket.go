@@ -6,6 +6,7 @@ import (
 
 const (
 	StatusOpen int = iota
+	StatusClosed
 )
 
 type Ticket struct {
@@ -50,6 +51,17 @@ func (s *Store) NewTicket(subject string) *Ticket {
 
 	//then return ticket:
 	return tk
+}
+
+func (s *Store) GetByStatus(Status int) (tix []*Ticket, err error) {
+	result := []*Ticket{}
+	for _, ticket := range s.tickets {
+		if ticket.Status == StatusOpen {
+			result = append(result, ticket)
+		}
+
+	}
+	return result, err
 }
 
 // GetByStatus draft
