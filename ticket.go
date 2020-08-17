@@ -56,18 +56,10 @@ func (s *Store) NewTicket(subject string) *Ticket {
 func (s *Store) GetByStatus(Status int) (tix []*Ticket, err error) {
 	result := []*Ticket{}
 	for _, ticket := range s.tickets {
-		if ticket.Status == StatusOpen {
+		if ticket.Status == Status {
 			result = append(result, ticket)
 		}
 
 	}
 	return result, err
 }
-
-// GetByStatus draft
-// start with 'result' is an empty slice of *ticket
-// range over the map of tickets
-// for each ticket:
-// 	if it's the status we want:
-//		append it to the result
-// return result
