@@ -31,7 +31,7 @@ func NewStore() *Store {
 	}
 }
 
-func (s *Store) Get(ID int) (*Ticket, error) {
+func (s *Store) GetByID(ID int) (*Ticket, error) {
 	tk, ok := s.tickets[ID]
 	if !ok {
 		return &Ticket{}, fmt.Errorf("no such ID %d", ID)

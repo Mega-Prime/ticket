@@ -44,7 +44,7 @@ func TestID(t *testing.T) {
 	}
 }
 
-func TestGetTicket(t *testing.T) {
+func TestGetByID(t *testing.T) {
 	//create ticket in system
 	t.Parallel()
 	s := ticket.NewStore()
@@ -53,7 +53,7 @@ func TestGetTicket(t *testing.T) {
 	want := s.NewTicket("My screen broke again")
 
 	//look up ticket by ID and get a pointer to it
-	got, err := s.Get(want.ID)
+	got, err := s.GetByID(want.ID)
 	if err != nil {
 		t.Fatal(err)
 	}
