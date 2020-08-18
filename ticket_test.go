@@ -85,9 +85,7 @@ func TestGetByStatus(t *testing.T) {
 	if err != nil {
 		t.Error(err2)
 	}
-	// if !cmp.Equal(want, got) {
-	// 	t.Error(cmp.Diff(want, got))
-	// }
+
 	if !cmp.Equal(want, got) {
 		t.Errorf("GetByStatus(StatusOpen): %v", cmp.Diff(want, got))
 	}
