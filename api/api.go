@@ -12,38 +12,12 @@ import (
 )
 
 // bad idea! fix this
+// problem: how do we access the store from within the handler?
 var store *ticket.Store
 
-// create GetTicket handler
-func GetTicket(w http.ResponseWriter, r *http.Request) {
-	_, rawID := path.Split(r.URL.Path)
-	ID, err := strconv.Atoi(rawID)
-	if err != nil {
-		w.WriteHeader(http.StatusTeapot)
-		fmt.Fprintf(w, "Invalid ticket ID %q", rawID)
-		return
-	}
-	tk, err := store.GetByID(ID)
-	if err != nil {
-		w.WriteHeader(http.StatusNotFound)
-		fmt.Fprintln(w, err)
-		return
-	}
-	data, err := json.Marshal(tk)
-	if err != nil {
-		log.Println(err)
-		w.WriteHeader(http.StatusInternalServerError)
-		fmt.Fprintln(w, "So sorry.")
-		return
-	}
-	w.Write(data)
-}
-
 func ListenAndServe(s *ticket.Store) error {
-
+	log.Println("Server started")
 	store = s
-
-	// l := log.New(os.Stdout, "Ticket-api", log.LstdFlags)
 
 	http.HandleFunc("/get/", GetTicket)
 	ticketServer := &http.Server{
@@ -57,4 +31,29 @@ func ListenAndServe(s *ticket.Store) error {
 
 	//return http.ListenAndServe(ticketServer.Addr, sm)
 
+}
+
+// create GetTicket handler
+func GetTicket(w http.ResponseWriter, r *http.Request) {
+	log.Println(r.URL)
+	_, rawID := path.Split(r.URL.Path)
+	ID, err := strconv.Atoi(rawID)
+	if err != nil {
+		w.WriteHeader(http.StatusTeapot)
+		fmt.Fprintf(w, "Invalid ticket ID %q", rawID)
+		return
+	}
+	tk, err := store.GetByID(ID)
+	if err != nil {
+		w.WriteHeader(http.StatusNotFound)
+		fmt.Fprintln(w, err)
+		return
+	}
+	err = json.NewEncoder(w).Encode(tk)
+	if err != nil {
+		log.Println(err)
+		w.WriteHeader(http.StatusInternalServerError)
+		fmt.Fprintln(w, "So sorry.")
+		return
+	}
 }

@@ -5,7 +5,8 @@ import (
 )
 
 const (
-	StatusOpen int = iota
+	StatusInvalid int = iota
+	StatusOpen
 	StatusClosed
 )
 
