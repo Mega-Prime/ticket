@@ -11,11 +11,11 @@ import (
 
 func TestHandler(t *testing.T) {
 	s := ticket.NewStore()
-	_ = s.NewTicket("New test ticket")
-
+	_ = s.NewTicket("This is ticket 1")
+	_ = s.NewTicket("This is ticket 2")
 	go api.ListenAndServe(s)
 
-	resp, err := http.Get("http://localhost:9090/1") //make this work
+	resp, err := http.Get("http://localhost:9090/get/2")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -29,10 +29,8 @@ func TestHandler(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if !strings.Contains(string(data), "New test ticket") {
+	if !strings.Contains(string(data), "This is ticket 2") {
 		t.Errorf("string not found. Got: %q", data)
 	}
 
 }
-
-

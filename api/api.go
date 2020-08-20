@@ -3,23 +3,29 @@ package api
 import (
 	"fmt"
 	"net/http"
+	"path"
+	"strconv"
 	"ticket"
 )
 
 var store *ticket.Store
 
-// create Hello handler
-func Hello(w http.ResponseWriter, r *http.Request) {
-	storedID := store.NewTicket("New test ticket")
-	ID := storedID.ID
-
+// create GetTicket handler
+func GetTicket(w http.ResponseWriter, r *http.Request) {
+	_, rawID := path.Split(r.URL.Path)
+	ID, err := strconv.Atoi(rawID)
+	if err != nil {
+		w.WriteHeader(http.StatusTeapot)
+		fmt.Fprintf(w, "Invalid ticket ID %q", rawID)
+		return
+	}
 	tk, err := store.GetByID(ID)
 	if err != nil {
+		w.WriteHeader(http.StatusNotFound)
 		fmt.Fprintln(w, err)
 		return
 	}
 	fmt.Fprintln(w, tk)
-
 }
 
 func ListenAndServe(s *ticket.Store) error {
@@ -49,8 +55,7 @@ func ListenAndServe(s *ticket.Store) error {
 	// 	}
 	// }()
 
-	http.HandleFunc("/", Hello)
-	http.HandleFunc("/1", Hello)
+	http.HandleFunc("/get/", GetTicket)
 
 	return http.ListenAndServe(":9090", nil)
 
