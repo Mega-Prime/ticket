@@ -10,10 +10,10 @@ const (
 )
 
 type Ticket struct {
-	Subject     string
-	Description string
-	ID          int
-	Status      int
+	Subject     string `json:"subject,omitempty"`
+	Description string `json:"description,omitempty"`
+	ID          int    `json:"id,omitempty"`
+	Status      int    `json:"status"`
 }
 
 type ticketMap map[int]*Ticket

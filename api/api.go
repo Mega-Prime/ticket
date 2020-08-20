@@ -1,13 +1,17 @@
 package api
 
 import (
+	"encoding/json"
 	"fmt"
+	"log"
 	"net/http"
 	"path"
 	"strconv"
 	"ticket"
+	"time"
 )
 
+// bad idea! fix this
 var store *ticket.Store
 
 // create GetTicket handler
@@ -25,7 +29,14 @@ func GetTicket(w http.ResponseWriter, r *http.Request) {
 		fmt.Fprintln(w, err)
 		return
 	}
-	fmt.Fprintln(w, tk)
+	data, err := json.Marshal(tk)
+	if err != nil {
+		log.Println(err)
+		w.WriteHeader(http.StatusInternalServerError)
+		fmt.Fprintln(w, "So sorry.")
+		return
+	}
+	w.Write(data)
 }
 
 func ListenAndServe(s *ticket.Store) error {
@@ -34,30 +45,15 @@ func ListenAndServe(s *ticket.Store) error {
 
 	// l := log.New(os.Stdout, "Ticket-api", log.LstdFlags)
 
-	// hh := Hello(l)
-
-	// sm := http.NewServeMux()
-	// sm.Handle("/", hh)
-	// sm.Handle("/1", hh)
-
-	// ticketServer := &http.Server{
-	// 	Addr:         ":9090",
-	// 	Handler:      sm,
-	// 	IdleTimeout:  120 * time.Second,
-	// 	ReadTimeout:  1 * time.Second,
-	// 	WriteTimeout: 1 * time.Second,
-	// }
-
-	// go func() {
-	// 	err := ticketServer.ListenAndServe()
-	// 	if err != nil {
-	// 		l.Fatal(err)
-	// 	}
-	// }()
-
 	http.HandleFunc("/get/", GetTicket)
+	ticketServer := &http.Server{
+		Addr:         ":9090",
+		IdleTimeout:  120 * time.Second,
+		ReadTimeout:  1 * time.Second,
+		WriteTimeout: 1 * time.Second,
+	}
 
-	return http.ListenAndServe(":9090", nil)
+	return ticketServer.ListenAndServe()
 
 	//return http.ListenAndServe(ticketServer.Addr, sm)
 
