@@ -5,13 +5,17 @@ import (
 	"net/http"
 	"strings"
 	"testing"
+	"ticket"
 	"ticket/api"
 )
 
 func TestHandler(t *testing.T) {
-	go api.ListenAndServe()
+	s := ticket.NewStore()
+	_ = s.NewTicket("New test ticket")
 
-	resp, err := http.Get("http://localhost:9090")
+	go api.ListenAndServe(s)
+
+	resp, err := http.Get("http://localhost:9090/1") //make this work
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -25,8 +29,10 @@ func TestHandler(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if !strings.Contains(string(data), "this is open") {
+	if !strings.Contains(string(data), "New test ticket") {
 		t.Errorf("string not found. Got: %q", data)
 	}
 
 }
+
+
