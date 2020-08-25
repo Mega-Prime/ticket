@@ -5,27 +5,57 @@ import (
 	"encoding/json"
 	"io/ioutil"
 	"log"
+	"net"
 	"net/http"
+	"strconv"
 	"strings"
 	"testing"
 	"ticket"
 	"ticket/api"
+	"time"
 
 	"github.com/google/go-cmp/cmp"
 	"github.com/google/go-cmp/cmp/cmpopts"
+	"github.com/phayes/freeport"
 )
 
+func startTestServer() (addr string, s *ticket.Store) {
+	s = ticket.NewStore()
+
+	port, err := freeport.GetFreePort()
+	log.Println(err)
+
+	addr = net.JoinHostPort("localhost", strconv.Itoa(port))
+
+	go api.ListenAndServe(addr, s)
+	url := "http://" + addr + "/get/"
+	resp, err := http.Get(url)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	for resp.StatusCode == http.StatusNotFound {
+		log.Println("RETRYING...")
+		log.Println(url)
+		time.Sleep(10 * time.Millisecond)
+		resp, _ = http.Get(url)
+
+	}
+	log.Println("SERVER READY")
+	return addr, s
+}
 func TestGet(t *testing.T) {
-	s := ticket.NewStore()
-	_ = s.NewTicket("This is ticket 1")
-	_ = s.NewTicket("This is ticket 2")
-	go func() {
-		err := api.ListenAndServe(s)
-		if err != nil {
-			t.Error(err)
-		}
-	}()
-	resp, err := http.Get("http://localhost:9090/get/2")
+	t.Parallel()
+	addr, s := startTestServer()
+	_, _ = s.AddTicket(ticket.Ticket{
+		Subject: "This is ticket 1",
+	})
+	_, _ = s.AddTicket(ticket.Ticket{
+		Subject: "This is ticket 2",
+	})
+	url := "http://" + addr + "/get/2"
+	log.Println(url)
+	resp, err := http.Get(url)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -46,13 +76,9 @@ func TestGet(t *testing.T) {
 }
 
 func TestCreate(t *testing.T) {
-	s := ticket.NewStore()
-	go func() {
-		err := api.ListenAndServe(s)
-		if err != nil {
-			t.Error(err)
-		}
-	}()
+	t.Parallel()
+	addr, _ := startTestServer()
+
 	want := ticket.Ticket{
 		Subject:     "I hope this gets created",
 		Description: "My screen broke!",
@@ -61,7 +87,7 @@ func TestCreate(t *testing.T) {
 	if err != nil {
 		t.Error(err)
 	}
-	resp, err := http.Post("http://localhost:9090/create", "application/json", bytes.NewBuffer(data))
+	resp, err := http.Post("http://"+addr+"/create", "application/json", bytes.NewBuffer(data))
 	if err != nil {
 		t.Fatal(err)
 	}

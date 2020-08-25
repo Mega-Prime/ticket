@@ -17,7 +17,7 @@ func TestNewTicket(t *testing.T) {
 		Status:  ticket.StatusOpen,
 		Subject: "My screen broke again",
 	}
-	got := s.NewTicket(want.Subject)
+	got := s.AddTicket(want.Subject)
 	if !cmp.Equal(want, got, ignoreID) {
 		t.Error(cmp.Diff(want, got))
 	}
@@ -26,18 +26,18 @@ func TestNewTicket(t *testing.T) {
 func TestFields(t *testing.T) {
 	t.Parallel()
 	s := ticket.NewStore()
-	tk := s.NewTicket("testing something")
+	tk := s.AddTicket("testing something")
 	tk.Description = "Pixels missing"
 }
 
 func TestID(t *testing.T) {
 	t.Parallel()
 	s := ticket.NewStore()
-	t1 := s.NewTicket("test ticket")
+	t1 := s.AddTicket("test ticket")
 	if t1.ID == 0 {
 		t.Errorf("invalid id: %v", t1.ID)
 	}
-	t2 := s.NewTicket("another test ticket")
+	t2 := s.AddTicket("another test ticket")
 	// IDs are sequential - potential security issue in the future?
 	if t1.ID == t2.ID {
 		t.Errorf("want different IDs, got both == %v", t1.ID)
@@ -50,7 +50,7 @@ func TestGetByID(t *testing.T) {
 	s := ticket.NewStore()
 
 	//pointer to created ticket
-	want := s.NewTicket("My screen broke again")
+	want := s.AddTicket("My screen broke again")
 
 	//look up ticket by ID and get a pointer to it
 	got, err := s.GetByID(want.ID)
@@ -67,8 +67,8 @@ func TestGetByID(t *testing.T) {
 func TestGetByStatus(t *testing.T) {
 	t.Parallel()
 	s := ticket.NewStore()
-	tkOpen := s.NewTicket("this is open")
-	tkClosed := s.NewTicket("this will be closed")
+	tkOpen := s.AddTicket("this is open")
+	tkClosed := s.AddTicket("this will be closed")
 	tkClosed.Status = ticket.StatusClosed
 	want := []*ticket.Ticket{
 		tkOpen,
@@ -98,6 +98,6 @@ func TestGetByStatus(t *testing.T) {
 func BenchmarkNewTicket(b *testing.B) {
 	p := ticket.NewStore()
 	for i := 0; i < b.N; i++ {
-		p.NewTicket("high speed")
+		p.AddTicket("high speed")
 	}
 }

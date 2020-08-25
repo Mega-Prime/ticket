@@ -19,9 +19,13 @@ type Ticket struct {
 	Status      int    `json:"status"`
 }
 
-func (t *Ticket) FromJson(r io.Reader) error {
-	e := json.NewDecoder(r)
-	return e.Decode(t)
+func (t *Ticket) FromJSON(r io.Reader) error {
+
+	return json.NewDecoder(r).Decode(t)
+}
+
+func (t *Ticket) ToJSON(w io.Writer) error {
+	return json.NewEncoder(w).Encode(t)
 }
 
 type ticketMap map[int]*Ticket
@@ -39,18 +43,16 @@ func NewStore() *Store {
 	}
 }
 
-func (s *Store) NewTicket(subject string) *Ticket {
+// AddTicket creates a ticket
+func (s *Store) AddTicket(t Ticket) (int, error) {
 	s.highestID++
-	tk := &Ticket{
-		Subject: subject,
-		ID:      s.highestID,
-		Status:  StatusOpen,
-	}
-	//save ticket here in a map:
-	s.tickets[tk.ID] = tk
 
-	//then return ticket:
-	return tk
+	//Store id in t
+	t.ID = s.highestID
+	//save ticket here in a map:
+	s.tickets[t.ID] = &t
+	return t.ID, nil
+
 }
 
 func (s *Store) GetByID(ID int) (*Ticket, error) {
@@ -70,15 +72,4 @@ func (s *Store) GetByStatus(Status int) (tix []*Ticket, err error) {
 
 	}
 	return result, err
-}
-
-func CreateTicket(t Ticket) (tic *Ticket, err error) {
-	tk := &Ticket{
-		Subject:     t.Subject,
-		Description: t.Description,
-		ID:          t.ID,
-		Status:      t.Status,
-	}
-	return tk, err
-
 }

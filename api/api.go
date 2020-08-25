@@ -15,15 +15,17 @@ import (
 // problem: how do we access the store from within the handler?
 var store *ticket.Store
 
-func ListenAndServe(s *ticket.Store) error {
+func ListenAndServe(addr string, s *ticket.Store) error {
 	log.Println("Server started")
+	log.Println(addr)
 	store = s
-
-	http.HandleFunc("/get/", GetTicket)
-	http.HandleFunc("/create", createTicket)
+	sm := http.NewServeMux()
+	sm.HandleFunc("/get/", GetTicket)
+	sm.HandleFunc("/create", createTicket)
 
 	ticketServer := &http.Server{
-		Addr:         ":9090",
+		Handler:      sm,
+		Addr:         addr,
 		IdleTimeout:  120 * time.Second,
 		ReadTimeout:  1 * time.Second,
 		WriteTimeout: 1 * time.Second,
@@ -64,19 +66,23 @@ func GetTicket(w http.ResponseWriter, r *http.Request) {
 func createTicket(w http.ResponseWriter, r *http.Request) {
 	log.Println("handle POST request")
 	log.Println(r.URL)
+
 	tk := ticket.Ticket{}
-	// decoder := json.NewDecoder(r.Body)
-	// error := decoder.Decode(&tk)
-	// if error != nil {
-	// 	log.Println(error.Error())
-	// 	http.Error(w, "Unable to unmarshal json data", http.StatusBadRequest)
-	// 	return
-	// }
-	err := tk.FromJson(r.Body)
+
+	err := tk.FromJSON(r.Body)
 	if err != nil {
 		http.Error(w, "unable to unmarshal json data", http.StatusBadRequest)
-
+		return
 	}
-	ticket.CreateTicket(tk)
+	ID, err := store.AddTicket(tk)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+	}
+	retrieve, err := store.GetByID(ID)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+	}
+	w.WriteHeader(http.StatusCreated)
+	retrieve.ToJSON(w)
 
 }
