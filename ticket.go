@@ -1,7 +1,9 @@
 package ticket
 
 import (
+	"encoding/json"
 	"fmt"
+	"io"
 )
 
 const (
@@ -15,6 +17,11 @@ type Ticket struct {
 	Description string `json:"description,omitempty"`
 	ID          int    `json:"id,omitempty"`
 	Status      int    `json:"status"`
+}
+
+func (t *Ticket) FromJson(r io.Reader) error {
+	e := json.NewDecoder(r)
+	return e.Decode(t)
 }
 
 type ticketMap map[int]*Ticket
@@ -32,14 +39,6 @@ func NewStore() *Store {
 	}
 }
 
-func (s *Store) GetByID(ID int) (*Ticket, error) {
-	tk, ok := s.tickets[ID]
-	if !ok {
-		return &Ticket{}, fmt.Errorf("no such ID %d", ID)
-	}
-	return tk, nil
-}
-
 func (s *Store) NewTicket(subject string) *Ticket {
 	s.highestID++
 	tk := &Ticket{
@@ -54,6 +53,14 @@ func (s *Store) NewTicket(subject string) *Ticket {
 	return tk
 }
 
+func (s *Store) GetByID(ID int) (*Ticket, error) {
+	tk, ok := s.tickets[ID]
+	if !ok {
+		return &Ticket{}, fmt.Errorf("no such ID %d", ID)
+	}
+	return tk, nil
+}
+
 func (s *Store) GetByStatus(Status int) (tix []*Ticket, err error) {
 	result := []*Ticket{}
 	for _, ticket := range s.tickets {
@@ -63,4 +70,15 @@ func (s *Store) GetByStatus(Status int) (tix []*Ticket, err error) {
 
 	}
 	return result, err
+}
+
+func CreateTicket(t Ticket) (tic *Ticket, err error) {
+	tk := &Ticket{
+		Subject:     t.Subject,
+		Description: t.Description,
+		ID:          t.ID,
+		Status:      t.Status,
+	}
+	return tk, err
+
 }

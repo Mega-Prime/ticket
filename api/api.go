@@ -20,6 +20,8 @@ func ListenAndServe(s *ticket.Store) error {
 	store = s
 
 	http.HandleFunc("/get/", GetTicket)
+	http.HandleFunc("/create", createTicket)
+
 	ticketServer := &http.Server{
 		Addr:         ":9090",
 		IdleTimeout:  120 * time.Second,
@@ -56,4 +58,25 @@ func GetTicket(w http.ResponseWriter, r *http.Request) {
 		fmt.Fprintln(w, "So sorry.")
 		return
 	}
+}
+
+// CreateTicket Handler
+func createTicket(w http.ResponseWriter, r *http.Request) {
+	log.Println("handle POST request")
+	log.Println(r.URL)
+	tk := ticket.Ticket{}
+	// decoder := json.NewDecoder(r.Body)
+	// error := decoder.Decode(&tk)
+	// if error != nil {
+	// 	log.Println(error.Error())
+	// 	http.Error(w, "Unable to unmarshal json data", http.StatusBadRequest)
+	// 	return
+	// }
+	err := tk.FromJson(r.Body)
+	if err != nil {
+		http.Error(w, "unable to unmarshal json data", http.StatusBadRequest)
+
+	}
+	ticket.CreateTicket(tk)
+
 }

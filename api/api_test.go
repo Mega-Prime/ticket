@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"io/ioutil"
+	"log"
 	"net/http"
 	"strings"
 	"testing"
@@ -67,6 +68,7 @@ func TestCreate(t *testing.T) {
 	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusCreated {
+		log.Println(resp.StatusCode)
 		t.Fatalf("wanted http response status %d, got: %d", http.StatusOK, resp.StatusCode)
 	}
 	got := ticket.Ticket{}
