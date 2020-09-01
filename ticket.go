@@ -73,3 +73,8 @@ func (s *Store) GetByStatus(Status int) (tix []*Ticket, err error) {
 	}
 	return result, err
 }
+
+// create OpenStore func. Takes io.reader, decodes a [] tickets
+// tickets need to be added to a new store in sequence. for loop?
+// close reader as to not create invalid writes
+// How do we write updates to the store? flush? Store.Writeto?

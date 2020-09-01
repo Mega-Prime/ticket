@@ -1,6 +1,7 @@
 package ticket_test
 
 import (
+	"bytes"
 	"testing"
 	"ticket"
 
@@ -93,6 +94,27 @@ func TestGetByStatus(t *testing.T) {
 		t.Errorf("GetByStatus(StatusOpen): %v", cmp.Diff(want, got))
 	}
 
+}
+
+func TestOpenStore(t *testing.T) {
+	t.Parallel()
+	want := "This is ticket 1"
+
+	data := `[{"subject": "This is ticket 1"}]`
+	reader := bytes.NewBufferString(data)
+	s, err := ticket.OpenStore(reader)
+	if err != nil {
+		t.Fatal(err)
+	}
+	tk, err := s.GetByID(1)
+	if err != nil {
+		t.Fatal(err)
+	}
+	got := tk.Subject
+
+	if !cmp.Equal(want, got) {
+		t.Error(cmp.Diff(want, got))
+	}
 }
 
 func BenchmarkNewTicket(b *testing.B) {

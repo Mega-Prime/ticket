@@ -13,15 +13,17 @@ import (
 
 // bad idea! fix this
 // problem: how do we access the store from within the handler?
+
 var store *ticket.Store
 
-func ListenAndServe(addr string, s *ticket.Store) error {
-	log.Println("Server started")
-	log.Println(addr)
-	store = s
+func ListenAndServe(addr string) error {
+	log.Println("Server started on: ", addr)
+	store = ticket.NewStore()
+
 	sm := http.NewServeMux()
 	sm.HandleFunc("/get/", GetTicket)
 	sm.HandleFunc("/create", createTicket)
+	sm.HandleFunc("/healthz", healthz)
 
 	ticketServer := &http.Server{
 		Handler:      sm,
@@ -39,7 +41,7 @@ func ListenAndServe(addr string, s *ticket.Store) error {
 
 // create GetTicket handler
 func GetTicket(w http.ResponseWriter, r *http.Request) {
-	log.Println(r.URL)
+	log.Println(r.Method, r.URL)
 	_, rawID := path.Split(r.URL.Path)
 	ID, err := strconv.Atoi(rawID)
 	if err != nil {
@@ -55,17 +57,21 @@ func GetTicket(w http.ResponseWriter, r *http.Request) {
 	}
 	err = json.NewEncoder(w).Encode(tk)
 	if err != nil {
-		log.Println(err)
+		//log.Println(err)
 		w.WriteHeader(http.StatusInternalServerError)
 		fmt.Fprintln(w, "So sorry.")
 		return
 	}
 }
 
+//healthz check 200:
+func healthz(w http.ResponseWriter, r *http.Request) {
+	log.Println(r.Method, r.URL)
+}
+
 // CreateTicket Handler
 func createTicket(w http.ResponseWriter, r *http.Request) {
-	log.Println("handle POST request")
-	log.Println(r.URL)
+	log.Println(r.Method, r.URL)
 
 	tk := ticket.Ticket{}
 
