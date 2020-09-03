@@ -69,59 +69,57 @@ func TestGetByID(t *testing.T) {
 	//create ticket in system
 	t.Parallel()
 	s := ticket.NewStore()
-	tk := ticket.Ticket{
+	want := ticket.Ticket{
 		Subject: "My screen Broke",
 	}
 	//pointer to created ticket
-	want, _ := s.AddTicket(tk)
+	ID, err := s.AddTicket(want)
+	if err != nil {
+		t.Fatal(err)
+	}
 
 	//look up ticket by ID and get a pointer to it
-	got, err := s.GetByID(tk.ID)
+	got, err := s.GetByID(ID)
 	if err != nil {
 		t.Fatal(err)
 	}
 
 	//both pointers should point to the same ticket
-	if !cmp.Equal(want, got) {
-		t.Error(cmp.Diff(want, got))
+	if !cmp.Equal(&want, got, ignoreID) {
+		t.Error(cmp.Diff(&want, got))
 	}
 }
 
 func TestGetByStatus(t *testing.T) {
 	t.Parallel()
 	s := ticket.NewStore()
-	open := ticket.Ticket{
-		Subject: "This is open",
+	wantOpen := []*ticket.Ticket{
+		{
+			Subject: "This is open",
+			Status:  ticket.StatusOpen,
+		},
 	}
-	closed := ticket.Ticket{
-		Subject: "This will be closed",
+	wantClosed := []*ticket.Ticket{
+		{
+			Subject: "This is closed",
+			Status:  ticket.StatusClosed,
+		},
 	}
-	tkOpen, _ := s.AddTicket(open)
-	tkClosed, _ := s.AddTicket(closed)
-	closed.Status = ticket.StatusClosed
-	want := []ticket.Ticket{
-		open, //tkOpen,
-	}
-	wantClosed := []ticket.Ticket{
-		closed, //tkClosed,
-	}
-	got, err := s.GetByStatus(ticket.StatusOpen)
+	s.AddTicket(*wantOpen[0])
+	s.AddTicket(*wantClosed[0])
+	gotOpen, err := s.GetByStatus(ticket.StatusOpen)
 	if err != nil {
-		log.Println(tkOpen)
 		t.Error(err)
 	}
-
-	gotclosed, err2 := s.GetByStatus(ticket.StatusClosed)
+	if !cmp.Equal(wantOpen, gotOpen, ignoreID) {
+		t.Errorf("GetByStatus(StatusOpen): %v", cmp.Diff(wantOpen, gotOpen))
+	}
+	gotClosed, err := s.GetByStatus(ticket.StatusClosed)
 	if err != nil {
-		log.Println(tkClosed)
-		t.Error(err2)
+		t.Error(err)
 	}
-
-	if !cmp.Equal(want, got) {
-		t.Errorf("GetByStatus(StatusOpen): %v", cmp.Diff(want, got))
-	}
-	if !cmp.Equal(wantClosed, gotclosed) {
-		t.Errorf("GetByStatus(StatusOpen): %v", cmp.Diff(want, got))
+	if !cmp.Equal(wantClosed, gotClosed, ignoreID) {
+		t.Errorf("GetByStatus(StatusClosed): %v", cmp.Diff(wantClosed, gotClosed))
 	}
 
 }
