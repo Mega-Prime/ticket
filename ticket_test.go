@@ -1,6 +1,7 @@
 package ticket_test
 
 import (
+	"bytes"
 	"log"
 	"testing"
 	"ticket"
@@ -124,26 +125,48 @@ func TestGetByStatus(t *testing.T) {
 
 }
 
-// func TestOpenStore(t *testing.T) {
-// 	t.Parallel()
-// 	want := "This is ticket 1"
+func TestOpenStore(t *testing.T) {
+	t.Parallel()
+	want := "This is a test ticket"
 
-// 	data := `[{"subject": "This is ticket 1"}]`
-// 	reader := bytes.NewBufferString(data)
-// 	s, err := ticket.OpenStore(reader)
-// 	if err != nil {
-// 		t.Fatal(err)
-// 	}
-// 	tk, err := s.GetByID(1)
-// 	if err != nil {
-// 		t.Fatal(err)
-// 	}
-// 	got := tk.Subject
+	data := `[{"ID": 99, "subject": "This is a test ticket"}]`
+	r := bytes.NewBufferString(data)
+	s, err := ticket.OpenStore(r)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if s == nil {
+		t.Fatal("store is nil")
+	}
+	tk, err := s.GetByID(99)
+	if err != nil {
+		t.Fatal(err)
+	}
+	got := tk.Subject
 
-// 	if !cmp.Equal(want, got) {
-// 		t.Error(cmp.Diff(want, got))
-// 	}
-// }
+	if !cmp.Equal(want, got) {
+		t.Error(cmp.Diff(want, got))
+	}
+}
+
+func TestWriteTo(t *testing.T) {
+	t.Parallel()
+	want := `[{"ID": 1, "subject": "This is a test ticket"}]`
+	var buf = &bytes.Buffer{}
+	s := ticket.NewStore()
+	s.AddTicket(ticket.Ticket{Subject: "This is a test ticket"})
+	err := s.WriteTo(buf)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if buf.Len() != len(want) {
+		t.Fatalf("want %d bytes written, got %d", len(want), buf.Len())
+	}
+	got := buf.String()
+	if !cmp.Equal(want, got) {
+		t.Error(cmp.Diff(want, got))
+	}
+}
 
 func BenchmarkNewTicket(b *testing.B) {
 	p := ticket.NewStore()

@@ -43,16 +43,36 @@ func NewStore() *Store {
 	}
 }
 
+// OpenStore takes an io.Reader, and tries to read JSON data representing a
+// slice of tickets.
+func OpenStore(r io.Reader) (*Store, error) {
+	s := NewStore()
+	var tks []Ticket
+	decoder := json.NewDecoder(r)
+	err := decoder.Decode(&tks)
+	if err != nil {
+		return nil, err
+	}
+	for _, tk := range tks {
+		s.tickets[tk.ID] = &tk
+	}
+	return s, nil
+}
+
+// Yada.
+func (s *Store) WriteTo(w io.Writer) error {
+	return nil
+}
+
 // AddTicket creates a ticket
-func (s *Store) AddTicket(t Ticket) (int, error) {
+func (s *Store) AddTicket(tk Ticket) (int, error) {
 	s.highestID++
 
 	//Store id in t
-	t.ID = s.highestID
+	tk.ID = s.highestID
 	//save ticket here in a map:
-	s.tickets[t.ID] = &t
-	return t.ID, nil
-
+	s.tickets[tk.ID] = &tk
+	return tk.ID, nil
 }
 
 func (s *Store) GetByID(ID int) (*Ticket, error) {
@@ -77,8 +97,3 @@ func (s *Store) GetByStatus(Status int) (tix []*Ticket, err error) {
 func (s *Store) OpenStore(r io.Reader) error {
 	return nil
 }
-
-// create OpenStore func. Takes io.reader, decodes a [] tickets
-// tickets need to be added to a new store in sequence. for loop?
-// close reader as to not create invalid writes
-// How do we write updates to the store? flush? Store.Writeto?
