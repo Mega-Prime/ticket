@@ -74,6 +74,10 @@ func (s *Store) GetByStatus(Status int) (tix []*Ticket, err error) {
 	return result, err
 }
 
+func (s *Store) OpenStore(r io.Reader) error {
+	return nil
+}
+
 // create OpenStore func. Takes io.reader, decodes a [] tickets
 // tickets need to be added to a new store in sequence. for loop?
 // close reader as to not create invalid writes
