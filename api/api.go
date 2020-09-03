@@ -3,8 +3,10 @@ package api
 import (
 	"encoding/json"
 	"fmt"
+	"io/ioutil"
 	"log"
 	"net/http"
+	"os"
 	"path"
 	"strconv"
 	"ticket"
@@ -13,13 +15,14 @@ import (
 
 // bad idea! fix this
 // problem: how do we access the store from within the handler?
-
 var store *ticket.Store
+var Logger *log.Logger
 
 func ListenAndServe(addr string) error {
-	log.Println("Server started on: ", addr)
 	store = ticket.NewStore()
-
+	Logger = log.New(os.Stderr, "", log.LstdFlags)
+	Logger = log.New(ioutil.Discard, "", log.LstdFlags)
+	Logger.Println("Server started on: ", addr)
 	sm := http.NewServeMux()
 	sm.HandleFunc("/get/", GetTicket)
 	sm.HandleFunc("/create", createTicket)
@@ -41,7 +44,7 @@ func ListenAndServe(addr string) error {
 
 // create GetTicket handler
 func GetTicket(w http.ResponseWriter, r *http.Request) {
-	log.Println(r.Method, r.URL)
+	Logger.Println(r.Method, r.URL)
 	_, rawID := path.Split(r.URL.Path)
 	ID, err := strconv.Atoi(rawID)
 	if err != nil {
@@ -66,12 +69,12 @@ func GetTicket(w http.ResponseWriter, r *http.Request) {
 
 //healthz check 200:
 func healthz(w http.ResponseWriter, r *http.Request) {
-	log.Println(r.Method, r.URL)
+	Logger.Println(r.Method, r.URL)
 }
 
 // CreateTicket Handler
 func createTicket(w http.ResponseWriter, r *http.Request) {
-	log.Println(r.Method, r.URL)
+	Logger.Println(r.Method, r.URL)
 
 	tk := ticket.Ticket{}
 
