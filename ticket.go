@@ -61,6 +61,11 @@ func OpenStore(r io.Reader) (*Store, error) {
 
 // Yada.
 func (s *Store) WriteTo(w io.Writer) error {
+	w = s.tickets
+	for _, tk := range w{
+		json.NewEncoder(tk).Encode
+	}
+	encoder := json.NewEncoder(w)
 	return nil
 }
 
@@ -92,8 +97,4 @@ func (s *Store) GetByStatus(Status int) (tix []*Ticket, err error) {
 
 	}
 	return result, err
-}
-
-func (s *Store) OpenStore(r io.Reader) error {
-	return nil
 }
