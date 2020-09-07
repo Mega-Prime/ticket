@@ -151,7 +151,7 @@ func TestOpenStore(t *testing.T) {
 
 func TestWriteTo(t *testing.T) {
 	t.Parallel()
-	want := `[{"ID": 1, "subject": "This is a test ticket"}]`
+	want := `[{"subject": "This is a test ticket","ID": 1}]`
 	var buf = &bytes.Buffer{}
 	s := ticket.NewStore()
 	s.AddTicket(ticket.Ticket{Subject: "This is a test ticket"})

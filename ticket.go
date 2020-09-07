@@ -16,7 +16,7 @@ type Ticket struct {
 	Subject     string `json:"subject,omitempty"`
 	Description string `json:"description,omitempty"`
 	ID          int    `json:"id,omitempty"`
-	Status      int    `json:"status"`
+	Status      int    `json:"status,omitempty"`
 }
 
 func (t *Ticket) FromJSON(r io.Reader) error {
@@ -59,13 +59,20 @@ func OpenStore(r io.Reader) (*Store, error) {
 	return s, nil
 }
 
-// Yada.
+// WriteTo writes encodes data to JSON and writes to file.
 func (s *Store) WriteTo(w io.Writer) error {
-	w = s.tickets
-	for _, tk := range w{
-		json.NewEncoder(tk).Encode
+	tks := s.tickets
+
+	for _, tk := range tks {
+		//encoder, err := json.Marshal(tk)
+		err := json.NewEncoder(w).Encode(tk)
+		//fmt.Println(string(encoder))
+		//err := encoder.Encode(tk)
+		if err != nil {
+			//fmt.Println(string(encoder))
+			return err
+		}
 	}
-	encoder := json.NewEncoder(w)
 	return nil
 }
 
