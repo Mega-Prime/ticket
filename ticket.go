@@ -16,7 +16,7 @@ type Ticket struct {
 	Subject     string `json:"subject,omitempty"`
 	Description string `json:"description,omitempty"`
 	ID          int    `json:"id,omitempty"`
-	Status      int    `json:"status,omitempty"`
+	Status      int    `json:"status"`
 }
 
 func (t *Ticket) FromJSON(r io.Reader) error {
@@ -63,19 +63,15 @@ func OpenStore(r io.Reader) (*Store, error) {
 func (s *Store) WriteJSONTo(w io.Writer) error {
 
 	tks := []Ticket{}
-	//
 	for _, tk := range s.tickets {
 		tks = append(tks, *tk)
 	}
 
-	encoder := json.NewEncoder(w)
-	err := encoder.Encode(tks)
-	if err != nil {
-		return err
-	}
+	return json.NewEncoder(w).Encode(tks)
+}
 
-	return nil
-
+func ReadJSONFrom(r io.Reader) (*Store, error) {
+	return &Store{}, nil
 }
 
 // AddTicket creates a ticket

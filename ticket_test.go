@@ -149,12 +149,15 @@ func TestOpenStore(t *testing.T) {
 	}
 }
 
-func TestWriteTo(t *testing.T) {
+func TestWriteJSONTo(t *testing.T) {
 	t.Parallel()
-	want := "[{\"subject\":\"This is a test ticket\",\"id\":1}]\n"
+	want := "[{\"subject\":\"This is a test ticket\",\"id\":1,\"status\":1}]\n"
 	var buf = &bytes.Buffer{}
 	s := ticket.NewStore()
-	s.AddTicket(ticket.Ticket{Subject: "This is a test ticket"})
+	s.AddTicket(ticket.Ticket{
+		Subject: "This is a test ticket",
+		Status:  ticket.StatusOpen,
+	})
 	err := s.WriteJSONTo(buf)
 	if err != nil {
 		t.Fatal(err)
@@ -162,9 +165,33 @@ func TestWriteTo(t *testing.T) {
 
 	got := buf.String()
 
-	if !cmp.Equal(want, got, cmpopts.IgnoreFields(ticket.Ticket{}, "Status")) {
+	if !cmp.Equal(want, got) {
 		t.Error(cmp.Diff(want, got))
 	}
+}
+
+func TestReadJSONFrom(t *testing.T) {
+	t.Parallel()
+	want := ticket.Ticket{
+		Subject: "This is a test ticket",
+		ID:      1,
+		Status:  ticket.StatusOpen,
+	}
+
+	var buf = bytes.NewBufferString("[{\"subject\":\"This is a test ticket\",\"id\":1}]\n")
+	s, err := ticket.ReadJSONFrom(buf)
+	if err != nil {
+		t.Fatal(err)
+	}
+	got, err := s.GetByID(want.ID)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if !cmp.Equal(want, got) {
+		t.Error(cmp.Diff(want, got))
+	}
+
 }
 
 func BenchmarkNewTicket(b *testing.B) {
