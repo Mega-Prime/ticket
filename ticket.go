@@ -60,20 +60,15 @@ func OpenStore(r io.Reader) (*Store, error) {
 }
 
 // WriteTo writes encodes data to JSON and writes to file.
-func (s *Store) WriteTo(w io.Writer) error {
-	tks := s.tickets
+func (s *Store) WriteJSONTo(w io.Writer) error {
 
-	for _, tk := range tks {
-		//encoder, err := json.Marshal(tk)
-		err := json.NewEncoder(w).Encode(tk)
-		//fmt.Println(string(encoder))
-		//err := encoder.Encode(tk)
-		if err != nil {
-			//fmt.Println(string(encoder))
-			return err
-		}
+	encoder := json.NewEncoder(w)
+	for _, tk := range s.tickets {
+		encoder.Encode(tk)
+
 	}
 	return nil
+
 }
 
 // AddTicket creates a ticket
