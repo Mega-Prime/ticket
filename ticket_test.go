@@ -151,7 +151,7 @@ func TestOpenStore(t *testing.T) {
 
 func TestWriteTo(t *testing.T) {
 	t.Parallel()
-	want := `[{"subject":"This is a test ticket","ID":1}]`
+	want := "[{\"subject\":\"This is a test ticket\",\"id\":1}]\n"
 	var buf = &bytes.Buffer{}
 	s := ticket.NewStore()
 	s.AddTicket(ticket.Ticket{Subject: "This is a test ticket"})
@@ -159,11 +159,9 @@ func TestWriteTo(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if buf.Len() != len(want)-1 {
-		t.Fatalf("want %d bytes written, got %d", len(want), buf.Len())
-	}
+
 	got := buf.String()
-	log.Println(got)
+
 	if !cmp.Equal(want, got, cmpopts.IgnoreFields(ticket.Ticket{}, "Status")) {
 		t.Error(cmp.Diff(want, got))
 	}

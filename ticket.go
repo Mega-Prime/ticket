@@ -62,11 +62,18 @@ func OpenStore(r io.Reader) (*Store, error) {
 // WriteTo writes encodes data to JSON and writes to file.
 func (s *Store) WriteJSONTo(w io.Writer) error {
 
-	encoder := json.NewEncoder(w)
+	tks := []Ticket{}
+	//
 	for _, tk := range s.tickets {
-		encoder.Encode(tk)
-
+		tks = append(tks, *tk)
 	}
+
+	encoder := json.NewEncoder(w)
+	err := encoder.Encode(tks)
+	if err != nil {
+		return err
+	}
+
 	return nil
 
 }
