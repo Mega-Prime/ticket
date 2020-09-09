@@ -71,7 +71,18 @@ func (s *Store) WriteJSONTo(w io.Writer) error {
 }
 
 func ReadJSONFrom(r io.Reader) (*Store, error) {
-	return &Store{}, nil
+	s := NewStore()
+	var tks []Ticket
+	decoder := json.NewDecoder(r)
+	err := decoder.Decode(&tks)
+	if err != nil {
+		return nil, err
+	}
+	for _, tk := range tks {
+		s.tickets[tk.ID] = &tk
+	}
+	return &Store{s.highestID, s.tickets}, nil
+	//return &Store{}, nil
 }
 
 // AddTicket creates a ticket

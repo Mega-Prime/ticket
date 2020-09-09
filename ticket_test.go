@@ -172,13 +172,12 @@ func TestWriteJSONTo(t *testing.T) {
 
 func TestReadJSONFrom(t *testing.T) {
 	t.Parallel()
-	want := ticket.Ticket{
+	want := &ticket.Ticket{
 		Subject: "This is a test ticket",
 		ID:      1,
 		Status:  ticket.StatusOpen,
 	}
-
-	var buf = bytes.NewBufferString("[{\"subject\":\"This is a test ticket\",\"id\":1}]\n")
+	var buf = bytes.NewBufferString("[{\"subject\":\"This is a test ticket\",\"id\":1,\"status\":1}]\n")
 	s, err := ticket.ReadJSONFrom(buf)
 	if err != nil {
 		t.Fatal(err)
