@@ -20,7 +20,6 @@ type Ticket struct {
 }
 
 func (t *Ticket) FromJSON(r io.Reader) error {
-
 	return json.NewDecoder(r).Decode(t)
 }
 
@@ -43,9 +42,9 @@ func NewStore() *Store {
 	}
 }
 
-// OpenStore takes an io.Reader, and tries to read JSON data representing a
+// ReadJSONFrom takes an io.Reader, and tries to read JSON data representing a
 // slice of tickets.
-func OpenStore(r io.Reader) (*Store, error) {
+func ReadJSONFrom(r io.Reader) (*Store, error) {
 	s := NewStore()
 	var tks []Ticket
 	decoder := json.NewDecoder(r)
@@ -61,7 +60,6 @@ func OpenStore(r io.Reader) (*Store, error) {
 
 // WriteTo writes encodes data to JSON and writes to file.
 func (s *Store) WriteJSONTo(w io.Writer) error {
-
 	tks := []Ticket{}
 	for _, tk := range s.tickets {
 		tks = append(tks, *tk)
@@ -70,28 +68,13 @@ func (s *Store) WriteJSONTo(w io.Writer) error {
 	return json.NewEncoder(w).Encode(tks)
 }
 
-func ReadJSONFrom(r io.Reader) (*Store, error) {
-	s := NewStore()
-	var tks []Ticket
-	decoder := json.NewDecoder(r)
-	err := decoder.Decode(&tks)
-	if err != nil {
-		return nil, err
-	}
-	for _, tk := range tks {
-		s.tickets[tk.ID] = &tk
-	}
-	return &Store{s.highestID, s.tickets}, nil
-	//return &Store{}, nil
-}
-
 // AddTicket creates a ticket
 func (s *Store) AddTicket(tk Ticket) (int, error) {
 	s.highestID++
 
-	//Store id in t
+	// Store id in t
 	tk.ID = s.highestID
-	//save ticket here in a map:
+	// save ticket here in a map:
 	s.tickets[tk.ID] = &tk
 	return tk.ID, nil
 }
@@ -110,7 +93,6 @@ func (s *Store) GetByStatus(Status int) (tix []*Ticket, err error) {
 		if ticket.Status == Status {
 			result = append(result, ticket)
 		}
-
 	}
 	return result, err
 }

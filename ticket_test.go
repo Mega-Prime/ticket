@@ -20,7 +20,6 @@ func TestNewTicket(t *testing.T) {
 		Subject: "My screen broke again",
 	}
 	got, err := s.AddTicket(want)
-
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -67,25 +66,25 @@ func TestID(t *testing.T) {
 }
 
 func TestGetByID(t *testing.T) {
-	//create ticket in system
+	// create ticket in system
 	t.Parallel()
 	s := ticket.NewStore()
 	want := ticket.Ticket{
 		Subject: "My screen Broke",
 	}
-	//pointer to created ticket
+	// pointer to created ticket
 	ID, err := s.AddTicket(want)
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	//look up ticket by ID and get a pointer to it
+	// look up ticket by ID and get a pointer to it
 	got, err := s.GetByID(ID)
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	//both pointers should point to the same ticket
+	// both pointers should point to the same ticket
 	if !cmp.Equal(&want, got, ignoreID) {
 		t.Error(cmp.Diff(&want, got))
 	}
@@ -122,37 +121,12 @@ func TestGetByStatus(t *testing.T) {
 	if !cmp.Equal(wantClosed, gotClosed, ignoreID) {
 		t.Errorf("GetByStatus(StatusClosed): %v", cmp.Diff(wantClosed, gotClosed))
 	}
-
-}
-
-func TestOpenStore(t *testing.T) {
-	t.Parallel()
-	want := "This is a test ticket"
-
-	data := `[{"ID": 99, "subject": "This is a test ticket"}]`
-	r := bytes.NewBufferString(data)
-	s, err := ticket.OpenStore(r)
-	if err != nil {
-		t.Fatal(err)
-	}
-	if s == nil {
-		t.Fatal("store is nil")
-	}
-	tk, err := s.GetByID(99)
-	if err != nil {
-		t.Fatal(err)
-	}
-	got := tk.Subject
-
-	if !cmp.Equal(want, got) {
-		t.Error(cmp.Diff(want, got))
-	}
 }
 
 func TestWriteJSONTo(t *testing.T) {
 	t.Parallel()
 	want := "[{\"subject\":\"This is a test ticket\",\"id\":1,\"status\":1}]\n"
-	var buf = &bytes.Buffer{}
+	buf := &bytes.Buffer{}
 	s := ticket.NewStore()
 	s.AddTicket(ticket.Ticket{
 		Subject: "This is a test ticket",
@@ -177,7 +151,7 @@ func TestReadJSONFrom(t *testing.T) {
 		ID:      1,
 		Status:  ticket.StatusOpen,
 	}
-	var buf = bytes.NewBufferString("[{\"subject\":\"This is a test ticket\",\"id\":1,\"status\":1}]\n")
+	buf := bytes.NewBufferString("[{\"subject\":\"This is a test ticket\",\"id\":1,\"status\":1}]\n")
 	s, err := ticket.ReadJSONFrom(buf)
 	if err != nil {
 		t.Fatal(err)
@@ -190,7 +164,6 @@ func TestReadJSONFrom(t *testing.T) {
 	if !cmp.Equal(want, got) {
 		t.Error(cmp.Diff(want, got))
 	}
-
 }
 
 func BenchmarkNewTicket(b *testing.B) {
