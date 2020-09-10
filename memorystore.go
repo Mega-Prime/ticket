@@ -4,9 +4,10 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"strconv"
 )
 
-type ticketMap map[int]*Ticket
+type ticketMap map[ID]*Ticket
 
 // MemoryStore stores tickets in memory.
 type MemoryStore struct {
@@ -24,20 +25,19 @@ func NewMemoryStore() Store {
 }
 
 // AddTicket creates a ticket
-func (s *MemoryStore) AddTicket(tk Ticket) (int, error) {
+func (s *MemoryStore) AddTicket(tk Ticket) (ID, error) {
 	s.highestID++
-
 	// MemoryStore id in t
-	tk.ID = s.highestID
+	tk.ID = ID(strconv.Itoa(s.highestID))
 	// save ticket here in a map:
 	s.tickets[tk.ID] = &tk
 	return tk.ID, nil
 }
 
-func (s *MemoryStore) GetByID(ID int) (*Ticket, error) {
+func (s *MemoryStore) GetByID(ID ID) (*Ticket, error) {
 	tk, ok := s.tickets[ID]
 	if !ok {
-		return &Ticket{}, fmt.Errorf("no such ID %d", ID)
+		return &Ticket{}, fmt.Errorf("no such ID %v", ID)
 	}
 	return tk, nil
 }

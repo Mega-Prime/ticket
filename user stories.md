@@ -52,6 +52,8 @@ Are issues private? Can a customer see other customers' issues? Can all engineer
 
 ## Extensions or enhancements
 
+* Numeric ticket IDs (or otherwise a bit more friendly than 12-byte hex strings)
+
 * and see a message like: "Thanks for reporting your issue, and here's a link to check on the status of it. We'll email you when it's resolved."
 
 * filter tickets by status

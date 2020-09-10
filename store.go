@@ -1,6 +1,6 @@
 package ticket
 
 type Store interface {
-	AddTicket(Ticket) (int, error)
-	GetByID(int) (*Ticket, error)
+	AddTicket(Ticket) (ID, error)
+	GetByID(ID) (*Ticket, error)
 }

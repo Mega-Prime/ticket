@@ -94,7 +94,7 @@ func TestGetByStatusMem(t *testing.T) {
 
 func TestWriteJSONTo(t *testing.T) {
 	t.Parallel()
-	want := "[{\"subject\":\"This is a test ticket\",\"id\":1,\"status\":1}]\n"
+	want := "[{\"subject\":\"This is a test ticket\",\"id\":\"1\",\"status\":1}]\n"
 	buf := &bytes.Buffer{}
 	s := ticket.NewMemoryStore().(*ticket.MemoryStore)
 	s.AddTicket(ticket.Ticket{
@@ -117,10 +117,10 @@ func TestReadJSONFrom(t *testing.T) {
 	t.Parallel()
 	want := &ticket.Ticket{
 		Subject: "This is a test ticket",
-		ID:      1,
+		ID:      "1",
 		Status:  ticket.StatusOpen,
 	}
-	buf := bytes.NewBufferString("[{\"subject\":\"This is a test ticket\",\"id\":1,\"status\":1}]\n")
+	buf := bytes.NewBufferString("[{\"subject\":\"This is a test ticket\",\"id\":\"1\",\"status\":1}]\n")
 	s, err := ticket.ReadJSONFrom(buf)
 	if err != nil {
 		t.Fatal(err)

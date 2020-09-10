@@ -11,10 +11,12 @@ const (
 	StatusClosed
 )
 
+type ID string
+
 type Ticket struct {
 	Subject     string `json:"subject,omitempty"`
 	Description string `json:"description,omitempty"`
-	ID          int    `json:"id,omitempty"`
+	ID          ID     `json:"id,omitempty"`
 	Status      int    `json:"status"`
 }
 
