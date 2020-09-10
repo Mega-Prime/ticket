@@ -35,6 +35,8 @@ As an engineer I need to be able to look at an issue, add information, modify th
   * Create interface for Store - done
   * Refactor existing Store code as e.g. 'MemoryStore' - done
   * Add DB-backed Store implementation: 'MongoStore'
+    * Add integration test for MongoStore AddTicket
+
 * Web app
 * ListTickets API endpoint
 * UpdateTicket API endpoint
