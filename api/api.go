@@ -15,11 +15,13 @@ import (
 
 // bad idea! fix this
 // problem: how do we access the store from within the handler?
-var store *ticket.Store
-var Logger *log.Logger
+var (
+	store  ticket.Store
+	Logger *log.Logger
+)
 
 func ListenAndServe(addr string) error {
-	store = ticket.NewStore()
+	store = ticket.NewMemoryStore()
 	Logger = log.New(os.Stderr, "", log.LstdFlags)
 	Logger = log.New(ioutil.Discard, "", log.LstdFlags)
 	Logger.Println("Server started on: ", addr)
@@ -38,8 +40,7 @@ func ListenAndServe(addr string) error {
 
 	return ticketServer.ListenAndServe()
 
-	//return http.ListenAndServe(ticketServer.Addr, sm)
-
+	// return http.ListenAndServe(ticketServer.Addr, sm)
 }
 
 // create GetTicket handler
@@ -60,14 +61,14 @@ func GetTicket(w http.ResponseWriter, r *http.Request) {
 	}
 	err = json.NewEncoder(w).Encode(tk)
 	if err != nil {
-		//log.Println(err)
+		// log.Println(err)
 		w.WriteHeader(http.StatusInternalServerError)
 		fmt.Fprintln(w, "So sorry.")
 		return
 	}
 }
 
-//healthz check 200:
+// healthz check 200:
 func healthz(w http.ResponseWriter, r *http.Request) {
 	Logger.Println(r.Method, r.URL)
 }
@@ -93,5 +94,4 @@ func createTicket(w http.ResponseWriter, r *http.Request) {
 	}
 	w.WriteHeader(http.StatusCreated)
 	retrieve.ToJSON(w)
-
 }

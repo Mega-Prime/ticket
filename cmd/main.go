@@ -1,10 +1,9 @@
 package main
 
 import (
-	"ticket"
 	"ticket/api"
 )
 
 func main() {
-	api.ListenAndServe(ticket.NewStore())
+	api.ListenAndServe(":8080")
 }
