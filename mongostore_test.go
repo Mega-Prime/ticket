@@ -1,15 +1,21 @@
-// +build integration
+//+build integration
 
 package ticket_test
 
 import (
+	"os"
 	"testing"
 	"ticket"
 )
 
 func TestAddTicketMongo(t *testing.T) {
 	t.Parallel()
-	s := ticket.NewMongoStore("mongo://localhost:27017")
+	dbURI := os.Getenv("MONGO_TICKET_STORE_URL")
+	if dbURI == "" {
+
+		t.Fatal("Database URI not set. Set envVar: MONGO_TICKET_STORE_URL = mongodb://localhost:27017")
+	}
+	s := ticket.NewMongoStore(dbURI)
 	tk1 := ticket.Ticket{
 		Subject: "Test Ticket",
 	}
