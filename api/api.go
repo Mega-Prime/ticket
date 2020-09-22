@@ -68,6 +68,8 @@ func GetTicket(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+//  write get all tickets func:
+
 // healthz check 200:
 func healthz(w http.ResponseWriter, r *http.Request) {
 	Logger.Println(r.Method, r.URL)

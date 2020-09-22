@@ -15,7 +15,7 @@ import (
 type MongoStore struct {
 }
 
-func NewMongoStore(addr string) Store {
+func NewMongoStore(addr string, collectionName string) Store {
 
 	return &MongoStore{}
 }
@@ -30,7 +30,7 @@ func (s *MongoStore) AddTicket(tk Ticket) (ID, error) {
 	client, err := mongo.NewClient(options.Client().ApplyURI(dbURI))
 
 	if err != nil {
-		return "", err
+		return "", fmt.Errorf("tried to access mongo URI %q, got %q", dbURI, err)
 	}
 
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
@@ -41,7 +41,7 @@ func (s *MongoStore) AddTicket(tk Ticket) (ID, error) {
 	}
 	defer client.Disconnect(ctx)
 
-	ticketCollection := client.Database("dbStore").Collection("ticket")
+	ticketCollection := client.Database("dbStore").Collection("ticketTest")
 	// turn ticket into BSON data
 	// call InsertOne on the collection
 	res, err := ticketCollection.InsertOne(ctx, tk)
@@ -50,15 +50,15 @@ func (s *MongoStore) AddTicket(tk Ticket) (ID, error) {
 	}
 
 	// convert res.InsertedID to 'ID' type
-	tkID, ok := res.InsertedID.(primitive.ObjectID)
+	dbID, ok := res.InsertedID.(primitive.ObjectID)
 
 	if !ok {
 		return "", fmt.Errorf("INTERNAL ERROR: Expected 'string' got %T", res.InsertedID)
 	}
 
 	// and return it
-	return objectIDtoTkID(tkID), nil
-	//return "0", nil
+	return ID(dbID.Hex()), nil
+
 }
 
 func (s *MongoStore) GetByID(ID) (*Ticket, error) {
