@@ -20,6 +20,10 @@ As a customer I want to see my ticket with any updates, and add a comment, or cl
 
 As an engineer I need to be able to look at an issue, add information, modify the status, and maybe close the ticket.
 
+* Persist data
+
+As an operations engineer I want to be able to shut down the ticket server, start it up again, and the tickets are still there.
+
 ## What don't we have for MVP?
 
 * WebApp (1wk)
@@ -48,7 +52,9 @@ As an engineer I need to be able to look at an issue, add information, modify th
       * Convert database Object ID to ticket ID (1d) - done
     * Add integration test for MongoStore GetticketByID - done
       * Implement GetByID - done
-  * Don't hardwire 'ticketTest' collection
+    * UpdateTicket
+    * GetAll
+  * Don't hardwire 'ticketTest' collection - done
 
 * Demo Day (2wk) - Oct 6th 2020
 

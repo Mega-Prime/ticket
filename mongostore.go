@@ -50,15 +50,20 @@ func (s *MongoStore) AddTicket(tk Ticket) (ID, error) {
 }
 
 func (s *MongoStore) GetByID(id ID) (*Ticket, error) {
-		var tk Ticket
-		oid, err := primitive.ObjectIDFromHex(string(id))
-		if err != nil {
-			return nil, err
-		}
-		res := s.collection.FindOne(s.ctx, bson.M{"_id": oid})
-		err = res.Decode(&tk)
-		if err != nil {
-			return nil, err
-		}
-		return &tk, nil
+	var tk Ticket
+	oid, err := primitive.ObjectIDFromHex(string(id))
+	if err != nil {
+		return nil, err
+	}
+	res := s.collection.FindOne(s.ctx, bson.M{"_id": oid})
+	err = res.Decode(&tk)
+	if err != nil {
+		return nil, err
+	}
+	tk.ID = id
+	return &tk, nil
+}
+
+func (s *MongoStore) GetAll() ([]*Ticket) {
+	return nil
 }
