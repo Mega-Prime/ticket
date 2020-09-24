@@ -35,7 +35,7 @@ As an engineer I need to be able to look at an issue, add information, modify th
 * Web app
 * ListTickets API endpoint (1d)
     * Write Get all tickets test
-    * Write Get all Tickets func  
+    * Write Get all Tickets func
 
 * UpdateTicket API endpoint (2d)
 
@@ -46,7 +46,9 @@ As an engineer I need to be able to look at an issue, add information, modify th
   * Add DB-backed Store implementation: 'MongoStore' - done
     * Add integration test for MongoStore AddTicket - done
       * Convert database Object ID to ticket ID (1d) - done
-    * Add integration test for MongoStore GetticketByID (1d)
+    * Add integration test for MongoStore GetticketByID - done
+      * Implement GetByID - done
+  * Don't hardwire 'ticketTest' collection
 
 * Demo Day (2wk) - Oct 6th 2020
 

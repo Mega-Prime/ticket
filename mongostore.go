@@ -2,49 +2,37 @@ package ticket
 
 import (
 	"context"
-	"errors"
 	"fmt"
-	"os"
-	"time"
 
+	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
 type MongoStore struct {
+	ctx context.Context
+	collection *mongo.Collection
 }
 
-func NewMongoStore(addr string, collectionName string) Store {
-
-	return &MongoStore{}
+func NewMongoStore(ctx context.Context, dbURI string, collectionName string) (Store, error) {
+	client, err := mongo.NewClient(options.Client().ApplyURI(dbURI))
+	if err != nil {
+		return nil, fmt.Errorf("failed to connect to Mongo at %q: %v", dbURI, err)
+	}
+	err = client.Connect(ctx)
+	if err != nil {
+		return nil, err
+	}
+	coll := client.Database("dbStore").Collection(collectionName)
+	return &MongoStore{
+		ctx: ctx,
+		collection: coll,
+	}, nil
 }
 
 func (s *MongoStore) AddTicket(tk Ticket) (ID, error) {
-	// given existing Mongo collection
-	dbURI := os.Getenv("MONGO_TICKET_STORE_URL")
-	if dbURI == "" {
-
-		return "", errors.New("Database URI not set. Set envVar: MONGO_TICKET_STORE_URL = mongodb://localhost:27017")
-	}
-	client, err := mongo.NewClient(options.Client().ApplyURI(dbURI))
-
-	if err != nil {
-		return "", fmt.Errorf("tried to access mongo URI %q, got %q", dbURI, err)
-	}
-
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
-	defer cancel()
-	err = client.Connect(ctx)
-	if err != nil {
-		return "", err
-	}
-	defer client.Disconnect(ctx)
-
-	ticketCollection := client.Database("dbStore").Collection("ticketTest")
-	// turn ticket into BSON data
-	// call InsertOne on the collection
-	res, err := ticketCollection.InsertOne(ctx, tk)
+	res, err := s.collection.InsertOne(s.ctx, tk)
 	if err != nil {
 		return "", err
 	}
@@ -61,6 +49,16 @@ func (s *MongoStore) AddTicket(tk Ticket) (ID, error) {
 
 }
 
-func (s *MongoStore) GetByID(ID) (*Ticket, error) {
-	return nil, nil
+func (s *MongoStore) GetByID(id ID) (*Ticket, error) {
+		var tk Ticket
+		oid, err := primitive.ObjectIDFromHex(string(id))
+		if err != nil {
+			return nil, err
+		}
+		res := s.collection.FindOne(s.ctx, bson.M{"_id": oid})
+		err = res.Decode(&tk)
+		if err != nil {
+			return nil, err
+		}
+		return &tk, nil
 }

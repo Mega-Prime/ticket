@@ -25,7 +25,7 @@ func startTestServer(t *testing.T) (addr string) {
 	}
 
 	addr = net.JoinHostPort("localhost", strconv.Itoa(port))
-
+	
 	go api.ListenAndServe(addr)
 	url := "http://" + addr + "/healthz"
 
