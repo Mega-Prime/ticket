@@ -66,26 +66,42 @@ func TestGetTicketByID(t *testing.T) {
 	}
 }
 
-func TestGetAll(t *testing.T) {
-	t.Parallel()
+// func TestGetAll(t *testing.T) {
+// 	t.Parallel()
+// 	s := newTestMongoStore(t)
+// 	// don't care about ID
+// 	want := []*ticket.Ticket{
+// 		{
+// 			Subject: "This is ticket A",
+// 		},
+// 		{
+// 			Subject: "This is ticket B",
+// 		},
+// 	}
+// 	got := s.GetAll()
+// 	if !cmp.Equal(&want, got, ignoreID) {
+// 		t.Error(cmp.Diff(&want, got))
+// 	}
+// }
+
+func TestUpdateTicket(t *testing.T) {
 	s := newTestMongoStore(t)
-	// don't care about ID
-	want := []*ticket.Ticket{
-		{
-			Subject: "This is ticket A",
-		},
-		{
-			Subject: "This is ticket B",
-		},
+	tk, err := s.AddTicket(ticket.Ticket{
+		Subject:     "This is a Test",
+		Description: "This is a start",
+	})
+	if err != nil {
+		t.Fatal(err)
 	}
-	got := s.GetAll()
+	want := ticket.Ticket{
+		Subject:     "This is a test",
+		Description: "This has been updated",
+	}
+
+	got := s.UpdateTicket()
 	if !cmp.Equal(&want, got, ignoreID) {
 		t.Error(cmp.Diff(&want, got))
 	}
-}
-
-func TestUpdateTicket(t * testing.T) {
-	t.FailNow()
 }
 
 func newTestMongoStore(t *testing.T) ticket.Store {

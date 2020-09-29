@@ -3,6 +3,7 @@ package ticket
 import (
 	"context"
 	"fmt"
+	"log"
 
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -11,7 +12,7 @@ import (
 )
 
 type MongoStore struct {
-	ctx context.Context
+	ctx        context.Context
 	collection *mongo.Collection
 }
 
@@ -26,7 +27,7 @@ func NewMongoStore(ctx context.Context, dbURI string, collectionName string) (St
 	}
 	coll := client.Database("dbStore").Collection(collectionName)
 	return &MongoStore{
-		ctx: ctx,
+		ctx:        ctx,
 		collection: coll,
 	}, nil
 }
@@ -64,6 +65,34 @@ func (s *MongoStore) GetByID(id ID) (*Ticket, error) {
 	return &tk, nil
 }
 
-func (s *MongoStore) GetAll() ([]*Ticket) {
-	return nil
+func (s *MongoStore) GetAll() []*Ticket {
+	res, err := s.collection.Find(s.ctx, bson.M{})
+	if err != nil {
+		return nil
+	}
+	var stuff bson.M
+	var tks []*Ticket
+	if err = res.All(s.ctx, &stuff); err != nil {
+		return nil
+	}
+
+	for _, i := range stuff {
+		tks = append(tks, i)
+	}
+
+	return tks
+
+}
+
+func (s *MongoStore) UpdateTicket(id ID, update string) {
+	coll := s.collection
+	oid, _ := primitive.ObjectIDFromHex(string(id))
+	result, err := coll.UpdateOne(s.ctx, bson.M{"_id": oid},
+		bson.D{
+			{"$set", bson.D{{"description", update}}}})
+
+	if err != nil {
+		log.Fatal(err)
+	}
+	fmt.Printf("Updated %v Documents!\n", result.ModifiedCount)
 }
