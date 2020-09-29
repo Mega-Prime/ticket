@@ -52,12 +52,12 @@ func (s *MemoryStore) GetByStatus(Status int) ([]*Ticket, error) {
 	return result, nil
 }
 
-func (s *MemoryStore) GetAll() []*Ticket {
+func (s *MemoryStore) GetAll() ([]*Ticket, error) {
 	result := []*Ticket{}
 	for _, ticket := range s.tickets {
 		result = append(result, ticket)
 	}
-	return result
+	return result, nil
 }
 
 // ReadJSONFrom takes an io.Reader, and tries to read JSON data representing a

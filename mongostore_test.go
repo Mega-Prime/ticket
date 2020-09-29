@@ -15,18 +15,23 @@ import (
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
+const (
+	testDB         = "dbStore"
+	testCollection = "ticket_test"
+)
+
 func TestAddTicketMongo(t *testing.T) {
-	t.Parallel()
+	//t.Parallel()
 	s := newTestMongoStore(t)
 	tk1 := ticket.Ticket{
-		Subject: "Test Ticket",
+		Subject: "TestAddTicketMongo",
 	}
 	ID1, err := s.AddTicket(tk1)
 	if err != nil {
 		t.Fatal(err)
 	}
 	tk2 := ticket.Ticket{
-		Subject: "Ticket 2",
+		Subject: "TestAddTicketMongo",
 	}
 	ID2, err := s.AddTicket(tk2)
 	if err != nil {
@@ -40,7 +45,7 @@ func TestAddTicketMongo(t *testing.T) {
 }
 
 func TestGetTicketByID(t *testing.T) {
-	t.Parallel()
+	//t.Parallel()
 	s := newTestMongoStore(t)
 	// don't care about ID
 	_, err := s.AddTicket(ticket.Ticket{})
@@ -66,43 +71,48 @@ func TestGetTicketByID(t *testing.T) {
 	}
 }
 
-// func TestGetAll(t *testing.T) {
-// 	t.Parallel()
+func TestGetAll(t *testing.T) {
+	//t.Parallel()
+	s := newTestMongoStore(t)
+	want := []*ticket.Ticket{
+		{
+			Subject: "This is ticket A",
+		},
+		{
+			Subject: "This is ticket B",
+		},
+	}
+	s.AddTicket(*want[0])
+	s.AddTicket(*want[1])
+	got, err := s.GetAll()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if !cmp.Equal(want, got, ignoreID) {
+		t.Error(cmp.Diff(want, got))
+	}
+}
+
+// func TestUpdateTicket(t *testing.T) {
 // 	s := newTestMongoStore(t)
-// 	// don't care about ID
-// 	want := []*ticket.Ticket{
-// 		{
-// 			Subject: "This is ticket A",
-// 		},
-// 		{
-// 			Subject: "This is ticket B",
-// 		},
+// 	tk, err := s.AddTicket(ticket.Ticket{
+// 		Subject:     "This is a Test",
+// 		Description: "This is a start",
+// 	})
+// 	if err != nil {
+// 		t.Fatal(err)
 // 	}
-// 	got := s.GetAll()
+// 	want := ticket.Ticket{
+// 		Subject:     "This is a test",
+// 		Description: "This has been updated",
+// 	}
+
+// 	got := s.UpdateTicket()
 // 	if !cmp.Equal(&want, got, ignoreID) {
 // 		t.Error(cmp.Diff(&want, got))
 // 	}
 // }
-
-func TestUpdateTicket(t *testing.T) {
-	s := newTestMongoStore(t)
-	tk, err := s.AddTicket(ticket.Ticket{
-		Subject:     "This is a Test",
-		Description: "This is a start",
-	})
-	if err != nil {
-		t.Fatal(err)
-	}
-	want := ticket.Ticket{
-		Subject:     "This is a test",
-		Description: "This has been updated",
-	}
-
-	got := s.UpdateTicket()
-	if !cmp.Equal(&want, got, ignoreID) {
-		t.Error(cmp.Diff(&want, got))
-	}
-}
 
 func newTestMongoStore(t *testing.T) ticket.Store {
 	dbURI := os.Getenv("MONGO_TICKET_STORE_URL")
@@ -112,7 +122,7 @@ func newTestMongoStore(t *testing.T) ticket.Store {
 	t.Cleanup(func() {
 		cleanUpTestCollection(t, dbURI)
 	})
-	s, err := ticket.NewMongoStore(context.Background(), dbURI, "ticket_test")
+	s, err := ticket.NewMongoStore(context.Background(), dbURI, testCollection)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -135,7 +145,7 @@ func cleanUpTestCollection(t *testing.T, dbURI string) {
 	defer client.Disconnect(ctx)
 
 	// Don't care if it fails. Omit error.
-	err = client.Database("dbStore").Collection("ticketTest").Drop(ctx)
+	err = client.Database(testDB).Collection(testCollection).Drop(ctx)
 	if err != nil {
 		t.Fatalf("tried to access mongo URI %q, got %q", dbURI, err)
 	}
