@@ -94,25 +94,30 @@ func TestGetAll(t *testing.T) {
 	}
 }
 
-// func TestUpdateTicket(t *testing.T) {
-// 	s := newTestMongoStore(t)
-// 	tk, err := s.AddTicket(ticket.Ticket{
-// 		Subject:     "This is a Test",
-// 		Description: "This is a start",
-// 	})
-// 	if err != nil {
-// 		t.Fatal(err)
-// 	}
-// 	want := ticket.Ticket{
-// 		Subject:     "This is a test",
-// 		Description: "This has been updated",
-// 	}
+func TestUpdateTicket(t *testing.T) {
+	s := newTestMongoStore(t)
+	tk, err := s.AddTicket(ticket.Ticket{
+		Subject: "Test UpdateTicket",
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
 
-// 	got := s.UpdateTicket()
-// 	if !cmp.Equal(&want, got, ignoreID) {
-// 		t.Error(cmp.Diff(&want, got))
-// 	}
-// }
+	want0, err := s.GetByID(tk)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	want := ticket.Ticket{
+		Subject:     "Test UpdateTicket",
+		Description: "This has been updated",
+	}
+
+	got := s.UpdateTicket(tk, want0)
+	if !cmp.Equal(want, got, ignoreID) {
+		t.Error(cmp.Diff(want, got))
+	}
+}
 
 func newTestMongoStore(t *testing.T) ticket.Store {
 	dbURI := os.Getenv("MONGO_TICKET_STORE_URL")

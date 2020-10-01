@@ -4,5 +4,5 @@ type Store interface {
 	AddTicket(Ticket) (ID, error)
 	GetByID(ID) (*Ticket, error)
 	GetAll() ([]*Ticket, error)
-	//UpdateTicket(id ID, update string)
+	UpdateTicket(ID, *Ticket) error
 }

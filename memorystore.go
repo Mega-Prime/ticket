@@ -60,6 +60,11 @@ func (s *MemoryStore) GetAll() ([]*Ticket, error) {
 	return result, nil
 }
 
+func (s *MemoryStore) UpdateTicket(ID, *Ticket) error {
+
+	return nil
+}
+
 // ReadJSONFrom takes an io.Reader, and tries to read JSON data representing a
 // slice of tickets.
 func ReadJSONFrom(r io.Reader) (*MemoryStore, error) {

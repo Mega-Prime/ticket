@@ -81,15 +81,21 @@ func (s *MongoStore) GetAll() ([]*Ticket, error) {
 	return tks, nil
 }
 
-// func (s *MongoStore) UpdateTicket(id ID, field string, update string) {
-// 	coll := s.collection
-// 	oid, _ := primitive.ObjectIDFromHex(string(id))
-// 	result, err := coll.UpdateOne(s.ctx, bson.M{"_id": oid},
-// 		bson.D{
-// 			{"$set", bson.D{{field, update}}}})
+func (s *MongoStore) UpdateTicket(id ID, tk *Ticket) error {
+	oid, err := primitive.ObjectIDFromHex(string(id))
+	if err != nil {
+		return err
+	}
+	res, err := s.collection.UpdateOne(
+		s.ctx,
+		bson.M{"id": oid},
+		bson.M{
 
-// 	if err != nil {
-// 		log.Fatal(err)
-// 	}
-// 	fmt.Printf("Updated %v Documents!\n", result.ModifiedCount)
-// }
+			"subject":     tk.Subject,
+			"description": tk.Description,
+			"status":      tk.Status},
+	)
+	fmt.Printf("Replaced %v Documents!\n", res.ModifiedCount)
+	return nil
+
+}
