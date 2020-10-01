@@ -81,21 +81,25 @@ func (s *MongoStore) GetAll() ([]*Ticket, error) {
 	return tks, nil
 }
 
-func (s *MongoStore) UpdateTicket(id ID, tk *Ticket) error {
-	oid, err := primitive.ObjectIDFromHex(string(id))
+func (s *MongoStore) UpdateTicket(tk *Ticket) error {
+	if tk.ID == "" {
+		return fmt.Errorf("no such ID: %+v", tk)
+	}
+	oid, err := primitive.ObjectIDFromHex(string(tk.ID))
 	if err != nil {
 		return err
 	}
-	res, err := s.collection.UpdateOne(
+	// don't need result
+	res, err := s.collection.ReplaceOne(
 		s.ctx,
-		bson.M{"id": oid},
-		bson.M{
-
-			"subject":     tk.Subject,
-			"description": tk.Description,
-			"status":      tk.Status},
+		bson.M{"_id": oid},
+		tk,
 	)
-	fmt.Printf("Replaced %v Documents!\n", res.ModifiedCount)
+	if err != nil {
+		return err
+	}
+	if res.ModifiedCount == 0 {
+		return fmt.Errorf("no such ID %q", tk.ID)
+	}
 	return nil
-
 }

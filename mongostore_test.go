@@ -21,7 +21,7 @@ const (
 )
 
 func TestAddTicketMongo(t *testing.T) {
-	//t.Parallel()
+	t.Parallel()
 	s := newTestMongoStore(t)
 	tk1 := ticket.Ticket{
 		Subject: "TestAddTicketMongo",
@@ -37,15 +37,13 @@ func TestAddTicketMongo(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	// IDs are sequential - potential security issue in the future?
 	if ID1 == ID2 {
 		t.Errorf("want different IDs, got both == %v", ID1)
 	}
-
 }
 
 func TestGetTicketByID(t *testing.T) {
-	//t.Parallel()
+	t.Parallel()
 	s := newTestMongoStore(t)
 	// don't care about ID
 	_, err := s.AddTicket(ticket.Ticket{})
@@ -72,7 +70,8 @@ func TestGetTicketByID(t *testing.T) {
 }
 
 func TestGetAll(t *testing.T) {
-	//t.Parallel()
+	// can't run in parallel because we need to know
+	// what all the tickets are
 	s := newTestMongoStore(t)
 	want := []*ticket.Ticket{
 		{
@@ -95,31 +94,46 @@ func TestGetAll(t *testing.T) {
 }
 
 func TestUpdateTicket(t *testing.T) {
+	t.Parallel()
 	s := newTestMongoStore(t)
-	tk, err := s.AddTicket(ticket.Ticket{
+	ID, err := s.AddTicket(ticket.Ticket{
 		Subject: "Test UpdateTicket",
 	})
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	want0, err := s.GetByID(tk)
+	original, err := s.GetByID(ID)
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	want := ticket.Ticket{
-		Subject:     "Test UpdateTicket",
-		Description: "This has been updated",
+	original.Subject = "This has been updated"
+	modified := original
+	err = s.UpdateTicket(modified)
+	if err != nil {
+		t.Fatal(err)
 	}
+	final, err := s.GetByID(modified.ID)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !cmp.Equal(modified, final) {
+		cmp.Diff(modified, final)
+	}
+}
 
-	got := s.UpdateTicket(tk, want0)
-	if !cmp.Equal(want, got, ignoreID) {
-		t.Error(cmp.Diff(want, got))
+func TestUpdateBogusTicket(t *testing.T) {
+	t.Parallel()
+	s := newTestMongoStore(t)
+	err := s.UpdateTicket(&ticket.Ticket{ID: "0f6a257cf0b6af5783e44658"})
+	if err == nil {
+		t.Fatal("want error on updating non-existent ticket, got nil")
 	}
 }
 
 func newTestMongoStore(t *testing.T) ticket.Store {
+	t.Helper()
 	dbURI := os.Getenv("MONGO_TICKET_STORE_URL")
 	if dbURI == "" {
 		t.Fatal("Database URI not set:\nexport MONGO_TICKET_STORE_URL=mongodb://localhost:27017")
@@ -135,6 +149,7 @@ func newTestMongoStore(t *testing.T) ticket.Store {
 }
 
 func cleanUpTestCollection(t *testing.T, dbURI string) {
+	t.Helper()
 	client, err := mongo.NewClient(options.Client().ApplyURI(dbURI))
 
 	if err != nil {
@@ -154,5 +169,4 @@ func cleanUpTestCollection(t *testing.T, dbURI string) {
 	if err != nil {
 		t.Fatalf("tried to access mongo URI %q, got %q", dbURI, err)
 	}
-
 }

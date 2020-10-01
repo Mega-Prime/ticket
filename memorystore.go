@@ -60,8 +60,7 @@ func (s *MemoryStore) GetAll() ([]*Ticket, error) {
 	return result, nil
 }
 
-func (s *MemoryStore) UpdateTicket(ID, *Ticket) error {
-
+func (s *MemoryStore) UpdateTicket(tk *Ticket) error {
 	return nil
 }
 

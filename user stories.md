@@ -37,14 +37,23 @@ As an operations engineer I want to be able to shut down the ticket server, star
 ## Engineering work for MVP
 
 * Web app
+  * https://github.com/caddyserver/certmagic
+
+* Update API to use MongoStore
+
 * ListTickets API endpoint (1d)
     * Write Get all tickets test
     * Write Get all Tickets func
+      * call API 'get all tickets' endpoint
+      * get some JSON
+      * decode it
+      * now we have a slice of tickets
+      * loop over the slice
+      * 	print ticket to writer
 
 * UpdateTicket API endpoint (2d)
 
-
-* Database integration (2wk)
+* Database integration (2wk) - done
   * Create interface for Store - done
   * Refactor existing Store code as e.g. 'MemoryStore' - done
   * Add DB-backed Store implementation: 'MongoStore' - done
@@ -52,8 +61,8 @@ As an operations engineer I want to be able to shut down the ticket server, star
       * Convert database Object ID to ticket ID (1d) - done
     * Add integration test for MongoStore GetticketByID - done
       * Implement GetByID - done
-    * UpdateTicket
-    * GetAll
+    * UpdateTicket - done
+    * GetAll - done
   * Don't hardwire 'ticketTest' collection - done
 
 * Demo Day (2wk) - Oct 6th 2020
