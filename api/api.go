@@ -3,6 +3,7 @@ package api
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"log"
 	"net/http"
 	"os"
@@ -97,11 +98,10 @@ func healthz(w http.ResponseWriter, r *http.Request) {
 // CreateTicket Handler
 func createTicket(w http.ResponseWriter, r *http.Request) {
 	Logger.Println(r.Method, r.URL)
-
 	tk := ticket.Ticket{}
-
 	err := tk.FromJSON(r.Body)
 	if err != nil {
+		fmt.Println("dying due to unmarshal error", err)
 		http.Error(w, "unable to unmarshal json data", http.StatusBadRequest)
 		return
 	}
@@ -115,5 +115,4 @@ func createTicket(w http.ResponseWriter, r *http.Request) {
 	}
 	w.WriteHeader(http.StatusCreated)
 	retrieve.ToJSON(w)
-
 }

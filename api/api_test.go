@@ -2,6 +2,7 @@ package api_test
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"fmt"
 	"log"
@@ -16,16 +17,19 @@ import (
 	"github.com/google/go-cmp/cmp"
 	"github.com/google/go-cmp/cmp/cmpopts"
 	"github.com/phayes/freeport"
+	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
 const (
 	testDB         = "dbStore"
 	testCollection = "ticket_test"
+	// TODO get this from environment
 	dbURI          = "mongodb+srv://megaPrime:H*rdlifease22@prime1.9fk1d.mongodb.net/quickstart?retryWrites=true&w=majority"
 )
 
 func startTestServer(t *testing.T) (addr string) {
-
+	t.Helper()
 	port, err := freeport.GetFreePort()
 	if err != nil {
 		t.Fatal(err)
@@ -35,6 +39,7 @@ func startTestServer(t *testing.T) (addr string) {
 
 	go func() {
 		err := api.ListenAndServe(addr, dbURI, testDB, testCollection)
+		fmt.Println("Listening")
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -42,26 +47,23 @@ func startTestServer(t *testing.T) (addr string) {
 	}()
 
 	url := "http://" + addr + "/healthz"
-
-	resp, err := http.Get(url)
-	if err != nil {
-		log.Fatal(err)
+	// Not too happy with this
+	time.Sleep(800 * time.Millisecond)
+	_, err = http.Get(url)
+	for err != nil {
+		log.Println("Waiting for connection...")
+		time.Sleep(30 * time.Millisecond)
+		_, err = http.Get(url)
 	}
-
-	for resp.StatusCode != http.StatusOK {
-		log.Println("RETRYING...")
-		time.Sleep(10 * time.Millisecond)
-		resp, _ = http.Get(url)
-
-	}
-
 	return addr
 }
 
 func TestCreateAndGet(t *testing.T) {
 	t.Parallel()
 	addr := startTestServer(t)
-
+	t.Cleanup(func() {
+		cleanUpTestCollection(t, dbURI)
+	})
 	want := ticket.Ticket{
 		Subject:     "I hope this gets created",
 		Description: "My screen broke!",
@@ -70,19 +72,13 @@ func TestCreateAndGet(t *testing.T) {
 	if err != nil {
 		t.Error(err)
 	}
-
-	fmt.Printf("This is the data: %q", data)
-
-	fmt.Println("Got here")
 	resp, err := http.Post("http://"+addr+"/create", "application/json", bytes.NewBuffer(data))
-
 	if err != nil {
 		t.Fatal(err)
 	}
 	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusCreated {
-
 		t.Fatalf("wanted http response status %d, got: %d", http.StatusOK, resp.StatusCode)
 	}
 	got := ticket.Ticket{}
@@ -100,8 +96,6 @@ func TestCreateAndGet(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	defer resp.Body.Close()
-
 	if resp.StatusCode != http.StatusOK {
 		t.Fatalf("wanted http response status %d, got: %d", http.StatusOK, resp.StatusCode)
 	}
@@ -116,9 +110,12 @@ func TestCreateAndGet(t *testing.T) {
 }
 
 func TestGetAllTickets(t *testing.T) {
-	t.Parallel()
+	// Can't run in parallel because we need to know the whole contents
+	// of the ticket store.
 	addr := startTestServer(t)
-
+	t.Cleanup(func() {
+		cleanUpTestCollection(t, dbURI)
+	})
 	want := []ticket.Ticket{
 		{
 			Subject: "Test Get all tickets #1",
@@ -127,37 +124,26 @@ func TestGetAllTickets(t *testing.T) {
 			Subject: "Test Get all tickets #2",
 		},
 	}
-
-	data, err := json.Marshal(want)
-	if err != nil {
-		t.Error(err)
-	}
-
-	fmt.Printf("this is  the data: %q\n", data)
-
-	fmt.Println("Are we after ticket creation?")
-	resp, err := http.Post("http://"+addr+"/create", "application/json", bytes.NewBuffer(data))
+	buf := bytes.Buffer{}
+	err := want[0].ToJSON(&buf)
 	if err != nil {
 		t.Fatal(err)
 	}
-
+	resp, err := http.Post("http://"+addr+"/create", "application/json", &buf)
+	if err != nil {
+		t.Fatal(err)
+	}
+	err = want[1].ToJSON(&buf)
+	if err != nil {
+		t.Fatal(err)
+	}
+	resp, err = http.Post("http://"+addr+"/create", "application/json", &buf)
+	if err != nil {
+		t.Fatal(err)
+	}
 	defer resp.Body.Close()
-	if resp.StatusCode != http.StatusCreated {
-		t.Fatalf("Needed http response status %d, got: %d", http.StatusOK, resp.StatusCode)
-	}
-
 	var got []ticket.Ticket
-	err = json.NewDecoder(resp.Body).Decode(&got)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	if !cmp.Equal(want, got, cmpopts.IgnoreFields(ticket.Ticket{}, "ID", "Status")) {
-		t.Error(cmp.Diff(want, got))
-	}
-
 	url := "http://" + addr + "/all"
-	fmt.Println("this is the url:", url)
 	resp, err = http.Get(url)
 	if err != nil {
 		t.Fatal(err)
@@ -177,4 +163,27 @@ func TestGetAllTickets(t *testing.T) {
 		t.Error(cmp.Diff(want, got))
 	}
 
+}
+
+func cleanUpTestCollection(t *testing.T, dbURI string) {
+	t.Helper()
+	client, err := mongo.NewClient(options.Client().ApplyURI(dbURI))
+
+	if err != nil {
+		t.Fatalf("tried to access mongo URI %q, got %q", dbURI, err)
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+	err = client.Connect(ctx)
+	if err != nil {
+		t.Fatalf("tried to access mongo URI %q, got %q", dbURI, err)
+	}
+	defer client.Disconnect(ctx)
+
+	// Don't care if it fails. Omit error.
+	err = client.Database(testDB).Collection(testCollection).Drop(ctx)
+	if err != nil {
+		t.Fatalf("tried to access mongo URI %q, got %q", dbURI, err)
+	}
 }
