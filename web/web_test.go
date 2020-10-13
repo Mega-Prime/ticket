@@ -74,3 +74,18 @@ func TestWeb(t *testing.T) {
 		t.Fatalf("want status %d, got %d", http.StatusOK, resp.StatusCode)
 	}
 }
+
+func TestAll(t *testing.T) {
+	// Can't run in parallel because we need to know the whole
+	// contents of the ticket store.
+	addr, client := startTestServer(t)
+	// call API to create 2 tickets
+	resp, err := client.Get("https://" + addr + "/all")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if resp.StatusCode != http.StatusOK {
+		t.Fatalf("want status %d, got %d", http.StatusOK, resp.StatusCode)
+	}
+	// check we got the tickets we created
+}
