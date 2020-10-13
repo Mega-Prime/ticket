@@ -15,7 +15,7 @@ type MongoStore struct {
 	collection *mongo.Collection
 }
 
-func NewMongoStore(ctx context.Context, dbURI string, collectionName string) (Store, error) {
+func NewMongoStore(ctx context.Context, dbURI, dbName string, collectionName string) (Store, error) {
 	client, err := mongo.NewClient(options.Client().ApplyURI(dbURI))
 	if err != nil {
 		return nil, fmt.Errorf("failed to connect to Mongo at %q: %v", dbURI, err)
@@ -24,7 +24,7 @@ func NewMongoStore(ctx context.Context, dbURI string, collectionName string) (St
 	if err != nil {
 		return nil, err
 	}
-	coll := client.Database("dbStore").Collection(collectionName)
+	coll := client.Database(dbName).Collection(collectionName)
 	return &MongoStore{
 		ctx:        ctx,
 		collection: coll,

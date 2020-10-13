@@ -16,7 +16,7 @@ import (
 )
 
 const (
-	testDB         = "dbStore"
+	testDBName     = "dbStore"
 	testCollection = "ticket_test"
 )
 
@@ -165,7 +165,7 @@ func cleanUpTestCollection(t *testing.T, dbURI string) {
 	defer client.Disconnect(ctx)
 
 	// Don't care if it fails. Omit error.
-	err = client.Database(testDB).Collection(testCollection).Drop(ctx)
+	err = client.Database(testDBName).Collection(testCollection).Drop(ctx)
 	if err != nil {
 		t.Fatalf("tried to access mongo URI %q, got %q", dbURI, err)
 	}

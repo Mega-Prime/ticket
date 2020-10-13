@@ -1,14 +1,12 @@
 package api
 
 import (
+	"context"
 	"encoding/json"
-	"fmt"
-	"io/ioutil"
 	"log"
 	"net/http"
 	"os"
 	"path"
-	"strconv"
 	"ticket"
 	"time"
 )
@@ -20,14 +18,20 @@ var (
 	Logger *log.Logger
 )
 
-func ListenAndServe(addr string) error {
-	store = ticket.NewMemoryStore()
+func ListenAndServe(addr, dbURI, dbName, collection string) error {
+	var err error
+	store, err = ticket.NewMongoStore(context.Background(), dbURI, dbName, collection)
+	if err != nil {
+		return err
+	}
+	log.Println("Did we get here?")
 	Logger = log.New(os.Stderr, "", log.LstdFlags)
-	Logger = log.New(ioutil.Discard, "", log.LstdFlags)
+
 	Logger.Println("Server started on: ", addr)
 	sm := http.NewServeMux()
 	sm.HandleFunc("/get/", GetTicket)
 	sm.HandleFunc("/create", createTicket)
+	sm.HandleFunc("/all", GetAllTickets)
 	sm.HandleFunc("/healthz", healthz)
 
 	ticketServer := &http.Server{
@@ -43,32 +47,47 @@ func ListenAndServe(addr string) error {
 	// return http.ListenAndServe(ticketServer.Addr, sm)
 }
 
-// create GetTicket handler
-func GetTicket(w http.ResponseWriter, r *http.Request) {
-	Logger.Println(r.Method, r.URL)
-	_, rawID := path.Split(r.URL.Path)
-	ID, err := strconv.Atoi(rawID)
+//  GetTicket handler
+func GetTicket(response http.ResponseWriter, request *http.Request) {
+	Logger.Println(request.Method, request.URL)
+	_, ID := path.Split(request.URL.Path)
+
+	tk, err := store.GetByID(ticket.ID(ID))
 	if err != nil {
-		w.WriteHeader(http.StatusTeapot)
-		fmt.Fprintf(w, "Invalid ticket ID %q", rawID)
+		response.WriteHeader(http.StatusNotFound)
+		response.Write([]byte(`{"message": "` + err.Error() + `"}`))
+		//fmt.Fprintln(response, err)
 		return
 	}
-	tk, err := store.GetByID(ID)
-	if err != nil {
-		w.WriteHeader(http.StatusNotFound)
-		fmt.Fprintln(w, err)
-		return
-	}
-	err = json.NewEncoder(w).Encode(tk)
+	err = json.NewEncoder(response).Encode(tk)
 	if err != nil {
 		// log.Println(err)
-		w.WriteHeader(http.StatusInternalServerError)
-		fmt.Fprintln(w, "So sorry.")
+		response.WriteHeader(http.StatusInternalServerError)
+		response.Write([]byte(`{"message": "` + err.Error() + `"}`))
+		//fmt.Fprintln(response, "So sorry.")
 		return
 	}
 }
 
 //  write get all tickets func:
+func GetAllTickets(response http.ResponseWriter, request *http.Request) {
+	Logger.Println(request.Method, request.URL)
+	path.Split(request.URL.Path)
+	tks, err := store.GetAll()
+	if err != nil {
+		response.WriteHeader(http.StatusNotFound)
+		response.Write([]byte(`{"message": "` + err.Error() + `"}`))
+		return
+	}
+
+	err = json.NewEncoder(response).Encode(tks)
+	if err != nil {
+		response.WriteHeader(http.StatusInternalServerError)
+		response.Write([]byte(`{"message": "` + err.Error() + `"}`))
+		return
+	}
+
+}
 
 // healthz check 200:
 func healthz(w http.ResponseWriter, r *http.Request) {
@@ -96,4 +115,5 @@ func createTicket(w http.ResponseWriter, r *http.Request) {
 	}
 	w.WriteHeader(http.StatusCreated)
 	retrieve.ToJSON(w)
+
 }
