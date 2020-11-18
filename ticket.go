@@ -1,52 +1,29 @@
 package ticket
 
-// const (
-// 	Open int = iota
-// 	InProgress
-// 	Closed
-// )
+import (
+	"encoding/json"
+	"io"
+)
 
-var StatusOpen = "Open"
+const (
+	StatusInvalid int = iota
+	StatusOpen
+	StatusClosed
+)
 
-/*
-Why Doesnt the map work when used in NewTicket function:
-i.e.
-	Status:      StatusOpen[Open],
+type ID string
 
-var StatusOpen = map[int]string{
-	Open:       "open",
-	InProgress: "In Progress",
-	Closed:     "Complete",
-}
-*/
 type Ticket struct {
-	Subject     string
-	Description string
-	ID          int
-	Status      string
+	Subject     string `json:"subject,omitempty"`
+	Description string `json:"description,omitempty"`
+	ID          ID     `json:"id,omitempty"`
+	Status      int    `json:"status"`
 }
 
-type Project struct {
-	Name            string
-	highestID       int
-	ProjDescription string
+func (t *Ticket) FromJSON(r io.Reader) error {
+	return json.NewDecoder(r).Decode(t)
 }
 
-func NewProject(name string) *Project {
-	return &Project{
-		Name: name,
-	}
-}
-
-func (p *Project) NewTicket(s string) Ticket {
-	p.highestID++
-	p.ProjDescription = "Pixels missing!"
-
-	return Ticket{
-		Subject:     s,
-		ID:          p.highestID,
-		Description: p.ProjDescription,
-		Status:      StatusOpen, //shouldnt values from map
-		//used here?
-	}
+func (t *Ticket) ToJSON(w io.Writer) error {
+	return json.NewEncoder(w).Encode(t)
 }
